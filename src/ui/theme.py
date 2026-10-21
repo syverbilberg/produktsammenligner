@@ -4,12 +4,15 @@ box, grey priority chips and a dark-green full-width action button."""
 
 CSS = """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 :root {
-  --page: #eceef1; --card: #ffffff; --line: #e1e4ea; --text: #15172b;
-  --muted: #5d6275; --chip: #eceef2; --field: #f7f8fa;
-  --green: #0e6b2e; --green-dark: #0a5524; --green-soft: #eaf5ee;
+  --page: #f5f6f9; --card: #ffffff; --line: #e4e7ee; --text: #14152b;
+  --muted: #5a6072; --chip: #eef0f5; --field: #f7f8fb;
+  --green: #00733e; --green-dark: #015e33; --green-soft: #e8f4ed;
+  --navy: #0d1a56; --navy-700: #16245f; --lime: #89bb33;
   --amber-soft: #fff6e5; --amber: #8a5a00;
 }
+html, body, .stApp, .stApp * { font-family: 'Inter', sans-serif; }
 html, body, .stApp { background: var(--page); color: var(--text); }
 .stApp { overflow-x: hidden; }
 #MainMenu, footer, header[data-testid="stHeader"], [data-testid="stToolbar"] { display: none !important; }
@@ -18,7 +21,7 @@ html, body, .stApp { background: var(--page); color: var(--text); }
 /* ---------- header ---------- */
 .ps-header {
   margin: -1.2rem calc(50% - 50vw) 28px; padding: 18px max(24px, calc(50vw - 690px));
-  background: linear-gradient(90deg, #15172c 0%, #1f1d40 50%, #3a2a62 100%);
+  background: var(--navy);
   display: flex; align-items: center; gap: 22px; color: #fff;
 }
 .ps-burger { width: 26px; display: grid; gap: 5px; }
@@ -49,13 +52,13 @@ div[class*="st-key-card"] {
 
 /* ---------- buttons ---------- */
 .stButton button[kind="primary"], [data-testid="stBaseButton-primary"] {
-  background: linear-gradient(90deg, #0a5524 0%, #0e6b2e 55%, #2e5a1c 100%) !important;
+  background: var(--green) !important;
   border: none !important; color: #fff !important; border-radius: 12px !important;
   min-height: 60px; font-size: 1.2rem !important; font-weight: 800 !important; letter-spacing: .2px;
   box-shadow: 0 6px 16px rgba(10,85,36,.22);
 }
 .stButton button[kind="primary"] p { font-size: 1.2rem !important; font-weight: 800 !important; }
-.stButton button[kind="primary"]:hover { filter: brightness(1.08); }
+.stButton button[kind="primary"]:hover { background: var(--green-dark) !important; }
 .stButton button[kind="secondary"], [data-testid="stBaseButton-secondary"] {
   background: #fff !important; border: 1px solid #d9dce3 !important; border-radius: 10px !important;
   color: var(--text) !important; font-weight: 700 !important;
