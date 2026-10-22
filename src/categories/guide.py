@@ -50,10 +50,12 @@ NOISE = rule("noise", "Støynivå (dB)", (r"^(lyd|støy)nivå", r"^støy.*db", r
 # seen: "Prosessortype: Intel Core i7" + "Nummer: 14700F" (desktop/laptop). Phones: "Prosessor"/"Brikkesett".
 # Ranked roughly by comparison/hardware.py; near-equal chips give no winner.
 PROCESSOR = rule("processor", "Prosessor",
-                 (r"^prosessor(modell)?$", r"^prosessortype$", r"^brikkesett", r"^prosessor \(", r"^cpu"),
+                 (r"^prosessor(modell)?$", r"^prosessortype$", r"^type prosessor$", r"^brikkesett", r"^chipset$",
+                  r"^prosessor \(", r"^cpu"),
                  "cpu", d.PERFORMANCE,
                  "Bestemmer hvor raskt alt føles. Rangert omtrentlig etter serie og generasjon – små forskjeller teller ikke.",
                  append=(r"^nummer$", r"^prosessornummer"))
+# seen: "Type prosessor: Snapdragon 8 Elite for Galaxy" (S25 phone page).
 # seen: "Internminne/RAM (GB): 16" (laptop). Phones often lack it (then: from the name "12/256GB").
 RAM = rule("ram", "RAM (GB)",
            (r"internminne/ram", r"^(ram|arbeidsminne|systemminne|minne)( \(gb\))?$", r"^ram-?størrelse", r"^ram \(gb\)"),

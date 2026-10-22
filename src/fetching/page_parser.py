@@ -146,6 +146,41 @@ def _fallbacks(soup: BeautifulSoup, product: Product) -> None:
             product.price = parse_price(match.group(1)) if match else None
 
 
+# A JSON string in a <script> that reads like prose (the "Mer informasjon" text
+# is often only there, rendered later by JavaScript).
+_JSON_STRING = re.compile(r'"((?:[^"\\]|\\.){80,})"')
+
+
+def _model_tokens(name: str) -> set[str]:
+    """Words in a product name that contain a digit ("S25", "WH-1000XM6"),
+    used to keep only script text about *this* product."""
+    return {w.lower() for w in re.findall(r"[\w-]*\d[\w-]*", name or "") if len(w) >= 2 and not w.isdigit()}
+
+
+def _script_prose(soup: BeautifulSoup, name: str) -> list[str]:
+    """Long prose strings from <script> JSON that mention this product's model.
+
+    Other products (recommendations, accessories) are also in the page data,
+    so a string is only kept when it names this product's model.
+    """
+    tokens = _model_tokens(name)
+    if not tokens:
+        return []
+    found: list[str] = []
+    for tag in soup.find_all("script"):
+        text = tag.string or tag.get_text() or ""
+        for raw in _JSON_STRING.findall(text):
+            try:
+                value = json.loads(f'"{raw}"')
+            except ValueError:
+                continue
+            value = _clean(BeautifulSoup(value, "html.parser").get_text(" ")) if "<" in value else _clean(value)
+            lowered = value.lower()
+            if value.count(" ") >= 10 and any(re.search(rf"(?<![\w-]){re.escape(t)}(?![\w-])", lowered) for t in tokens):
+                found.append(value)
+    return found
+
+
 def _read_description(soup: BeautifulSoup, product: Product) -> None:
     """Collect description text: JSON-LD first, then meta tags, then the
     page's description section and paragraphs. Product-page text comes
@@ -159,6 +194,7 @@ def _read_description(soup: BeautifulSoup, product: Product) -> None:
         parts.append(element.get_text(" "))
     for paragraph in soup.find_all("p"):
         parts.append(paragraph.get_text(" "))
+    parts += _script_prose(soup, product.name)
     seen, unique = set(), []
     for part in (_clean(p) for p in parts):
         if part and part not in seen:

@@ -272,3 +272,22 @@ def test_every_category_has_a_comparable_key_spec(category):
     so a comparison never ends up as only "Info" rows."""
     comparable = [r for r in category.rules if r.kind != "info"]
     assert len(comparable) >= 3, category.id
+
+
+def test_phone_processor_label_type_prosessor():
+    """S25 page: "Type prosessor: Snapdragon 8 Elite for Galaxy"."""
+    page = dict(pages.S25, description="", specs={**pages.S25["specs"], "Type prosessor": "Snapdragon 8 Elite for Galaxy"})
+    assert values(page)["processor"][0] == "Snapdragon 8 Elite for Galaxy"
+
+
+def test_more_info_text_inside_script_json_is_read():
+    """"Mer informasjon" can live only in the page's JSON data; other products' text must be ignored."""
+    from src.fetching.page_parser import parse_product_page
+    from src.models import Product
+    own = "Galaxy S25 drives av en åttekjernet Snapdragon 8 Elite-prosessor som gir jevn ytelse uten forsinkelser, mens batteriet på 4000 mAh holder lenge."
+    other = "iPhone 17 Pro har A19 Pro-brikken som er ekstremt rask og gir deg en helt ny opplevelse hver eneste dag."
+    html = ('<html><h1>Samsung Galaxy S25 5G smarttelefon 12/256GB</h1>'
+            '<script>window.__DATA__ = {"longDescription": "<p>' + own + '</p>", "related": {"text": "' + other + '"}}</script></html>')
+    product = parse_product_page(html, Product(sku="938012", name="Samsung Galaxy S25 5G smarttelefon 12/256GB", url=""))
+    assert "Snapdragon 8 Elite" in product.description
+    assert "A19" not in product.description
