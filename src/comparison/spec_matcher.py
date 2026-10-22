@@ -42,8 +42,21 @@ def find_value(product: Product, rule: SpecRule, used: set[str]) -> str | None:
         for score, label in scored:
             if score == wanted:
                 used.add(label)
-                return page_value(product, label)
+                return _with_appended(product, rule, page_value(product, label), used)
     return None
+
+
+def _with_appended(product: Product, rule: SpecRule, value: str, used: set[str]) -> str:
+    """Add values from rule.append labels: "Intel Core i7" + "14700F" → "Intel Core i7 14700F"."""
+    for pattern in rule.append:
+        regex = re.compile(pattern)
+        for label in product.specs:
+            extra = product.specs[label].strip()
+            if label not in used and regex.search(label.lower()) and extra and extra.lower() not in value.lower():
+                used.add(label)
+                value = f"{value} {extra}"
+                break
+    return value
 
 
 def page_value(product: Product, label: str) -> str:

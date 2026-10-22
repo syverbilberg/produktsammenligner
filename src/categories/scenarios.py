@@ -27,7 +27,7 @@ SCENARIOS: dict[str, tuple[Scenario, ...]] = {
         s("Lang levetid", "vil beholde telefonen i mange år",
           ("generation", "updates", "battery_cycles", "ip", "storage"), "shield"),
         s("Spill og tunge apper", "spiller mye eller bruker tunge apper",
-          ("ram", "refresh", "generation", "storage"), "bolt"),
+          ("processor", "ram", "refresh", "generation"), "bolt"),
     ),
     "tablet": (
         s("Film og strømming", "ser mye film og serier", ("screen_type", "resolution", "refresh", "screen_size"), "screen"),
@@ -40,22 +40,23 @@ SCENARIOS: dict[str, tuple[Scenario, ...]] = {
         s("Uten mobilen", "vil kunne la mobilen ligge hjemme", ("lte", "gps"), "shield"),
     ),
     "headphones": (
-        s("Reise og pendling", "reiser og pendler mye", ("anc", "battery_life"), "volume"),
+        s("Reise og pendling", "reiser og pendler mye", ("anc", "battery_anc", "battery_life"), "volume"),
         s("Trening", "skal bruke dem på trening", ("ip", "battery_life"), "bolt"),
         s("Jobb og samtaler", "har mange samtaler og møter", ("mic", "multipoint"), "users"),
     ),
     "laptop": (
         s("Skole og kontor", "trenger en lett PC til skole og kontor",
           ("battery_life", "weight", "ram", "storage", "fast_charge"), "pen"),
-        s("Tunge oppgaver", "redigerer bilder/video eller kjører tunge programmer",
-          ("cores", "ram", "refresh", "brightness", "storage"), "bolt"),
+        s("Spill og tunge oppgaver", "spiller eller redigerer bilder/video",
+          ("gpu", "processor", "ram", "vram", "refresh"), "bolt"),
         s("Lang levetid", "vil bruke PC-en i mange år", ("ram_max", "release_year", "ram", "storage"), "shield"),
         s("Tilkoblinger", "kobler til skjermer og tilbehør",
           ("hdmi", "thunderbolt", "usbc_pd", "card_reader"), "plug"),
     ),
     "desktop": (
-        s("Spill", "spiller nye spill", ("vram", "ram", "storage"), "bolt"),
-        s("Oppgraderbarhet", "vil kunne oppgradere senere", ("psu", "ram"), "shield"),
+        s("Spill", "spiller nye spill", ("gpu", "vram", "processor", "ram"), "bolt"),
+        s("Streaming og videoredigering", "redigerer video eller strømmer spill", ("processor", "cores", "ram", "gpu"), "screen"),
+        s("Oppgraderbarhet", "vil kunne oppgradere senere", ("psu", "ram_max", "storage"), "shield"),
     ),
     "monitor": (
         s("Gaming", "spiller mye", ("refresh", "response", "panel"), "bolt"),
@@ -66,8 +67,10 @@ SCENARIOS: dict[str, tuple[Scenario, ...]] = {
         s("Hjemmekontor", "trenger skanner og tosidig utskrift", ("duplex", "scan", "wifi"), "home"),
     ),
     "tv": (
-        s("Film i mørkt rom", "ser mye film om kvelden", ("panel", "dolby_vision"), "screen"),
-        s("Sport og gaming", "ser sport eller spiller på konsoll", ("refresh", "hdmi21", "vrr"), "bolt"),
+        s("Film i mørkt rom", "ser mye film om kvelden", ("contrast_score", "panel", "dolby_vision", "panel_score"), "screen"),
+        s("Lyst rom", "har TV-en i et lyst rom", ("brightness_score", "panel_score"), "sparkle"),
+        s("Sport og gaming", "ser sport eller spiller på konsoll",
+          ("refresh", "hdmi_standard", "vrr", "allm", "hdmi_count"), "bolt"),
         s("Lyd uten lydplanke", "ikke vil kjøpe lydplanke", ("sound_w", "atmos"), "volume"),
     ),
     "soundbar": (
@@ -80,7 +83,7 @@ SCENARIOS: dict[str, tuple[Scenario, ...]] = {
     ),
     "camera": (
         s("Dårlig lys", "fotograferer mye innendørs eller om kvelden", ("sensor", "ibis"), "camera"),
-        s("Video", "filmer mye", ("video", "ibis"), "camera"),
+        s("Video", "filmer mye", ("video_res", "ibis"), "camera"),
     ),
     "fridge": (
         s("Stor familie", "har en stor husstand", ("volume", "fridge_volume", "freezer_volume"), "users"),
@@ -97,12 +100,12 @@ SCENARIOS: dict[str, tuple[Scenario, ...]] = {
     "washer": (
         s("Stor familie", "vasker mye tøy", ("capacity_kg", "auto_dose", "programs"), "users"),
         s("Kortere tørketid", "vil ha tørrere tøy etter vask", ("spin",), "clock"),
-        s("Lave strømutgifter", "vil spare strøm", ("energy",), "leaf"),
+        s("Lave strømutgifter", "vil spare strøm og vann", ("energy", "energy_year", "water"), "leaf"),
         s("Stille drift", "har vaskemaskinen nær stue eller soverom", ("noise",), "volume"),
     ),
     "dryer": (
-        s("Lave strømutgifter", "vil spare strøm", ("tech", "energy"), "leaf"),
-        s("Skånsomt for klærne", "vil være skånsom mot tøyet", ("tech", "moisture"), "sparkle"),
+        s("Lave strømutgifter", "vil spare strøm", ("heat_pump", "energy", "energy_year"), "leaf"),
+        s("Skånsomt for klærne", "vil være skånsom mot tøyet", ("heat_pump", "moisture", "steam"), "sparkle"),
         s("Stor familie", "tørker mye tøy", ("capacity_kg",), "users"),
     ),
     "dishwasher": (
@@ -117,9 +120,9 @@ SCENARIOS: dict[str, tuple[Scenario, ...]] = {
         s("Gulvvask", "vil at den også vasker gulvet", ("mop", "water_tank", "mop_type"), "sparkle"),
     ),
     "coffee": (
-        s("Melkedrikker", "drikker mye cappuccino og latte", ("milk",), "cup"),
-        s("Espresso", "vil ha best mulig espresso", ("pressure", "grinder"), "cup"),
-        s("Lite vedlikehold", "vil bruke lite tid på rengjøring", ("brew_group", "rinse"), "sparkle"),
+        s("Melkedrikker", "drikker mye cappuccino og latte", ("milk", "frother"), "cup"),
+        s("Espresso", "vil ha best mulig espresso", ("grinder", "grind_levels", "pressure"), "cup"),
+        s("Lite vedlikehold", "vil bruke lite tid på rengjøring", ("rinse", "brew_group", "descale_alert", "water_tank"), "sparkle"),
     ),
     "kitchen_machine": (
         s("Brød, pizza og tunge gjærdeiger", "baker mye brød og tunge deiger",

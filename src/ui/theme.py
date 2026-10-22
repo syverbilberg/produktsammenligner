@@ -1,20 +1,19 @@
 """All CSS for the app, styled after the subscription calculator:
-dark navy→purple header, light grey page, white rounded cards with an icon
+solid navy header, light grey page, white rounded cards with an icon
 box, grey priority chips and a dark-green full-width action button."""
 
 CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 :root {
-  --page: #f5f6f9; --card: #ffffff; --line: #e4e7ee; --text: #14152b;
-  --muted: #5a6072; --chip: #eef0f5; --field: #f7f8fb;
-  --green: #00733e; --green-dark: #015e33; --green-soft: #e8f4ed;
-  --navy: #0d1a56; --navy-700: #16245f; --lime: #89bb33;
+  --navy: #0d1a56; --page: #f5f6f9; --card: #ffffff; --line: #e1e4ea; --text: #15172b;
+  --muted: #5d6275; --chip: #eceef2; --field: #f7f8fa;
+  --green: #00733e; --green-dark: #015e33; --green-soft: #eaf5ee;
   --amber-soft: #fff6e5; --amber: #8a5a00;
 }
-html, body, .stApp, .stApp * { font-family: 'Inter', sans-serif; }
-html, body, .stApp { background: var(--page); color: var(--text); }
+html, body, .stApp { background: var(--page); color: var(--text); font-family: 'Inter', sans-serif; }
 .stApp { overflow-x: hidden; }
+.stApp :is(p, h1, h2, h3, h4, td, th, li, a, label, button, input, div) { font-family: 'Inter', sans-serif; }
 #MainMenu, footer, header[data-testid="stHeader"], [data-testid="stToolbar"] { display: none !important; }
 .block-container { padding-top: 0 !important; padding-bottom: 3rem; max-width: 1400px; }
 
@@ -55,7 +54,7 @@ div[class*="st-key-card"] {
   background: var(--green) !important;
   border: none !important; color: #fff !important; border-radius: 12px !important;
   min-height: 60px; font-size: 1.2rem !important; font-weight: 800 !important; letter-spacing: .2px;
-  box-shadow: 0 6px 16px rgba(10,85,36,.22);
+  box-shadow: 0 6px 16px rgba(0,115,62,.22);
 }
 .stButton button[kind="primary"] p { font-size: 1.2rem !important; font-weight: 800 !important; }
 .stButton button[kind="primary"]:hover { background: var(--green-dark) !important; }
@@ -95,7 +94,7 @@ div[class*="st-key-remove_"] .stButton button { border: none !important; backgro
 .ps-product { border: 1px solid var(--line); border-radius: 14px; padding: 16px; position: relative; background: #fff; }
 .ps-product.best { border: 2px solid var(--green); }
 .ps-badge { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px;
-            background: #1f1d40; color: #fff; font-weight: 800; }
+            background: var(--navy); color: #fff; font-weight: 800; }
 .ps-best { position: absolute; top: 14px; right: 14px; background: var(--green); color: #fff; font-size: .78rem;
            font-weight: 700; padding: 4px 10px; border-radius: 999px; }
 .ps-product img { width: 100%; height: 130px; object-fit: contain; margin: 10px 0; }

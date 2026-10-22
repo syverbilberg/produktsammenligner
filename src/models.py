@@ -52,6 +52,8 @@ class SpecRule:
             "energy" – better EU energy class wins
             "yes"    – having the feature ("Ja") wins
             "rank"   – value containing an earlier word in `order` wins
+            "cpu"    – processor, ranked by comparison/hardware.py
+            "gpu"    – graphics card, ranked by comparison/hardware.py
             "info"   – shown for information only, no winner
         dimension: Which customer priority this spec belongs to.
         why: One line explaining why the spec matters.
@@ -59,6 +61,9 @@ class SpecRule:
         aggregate: "first" uses the first matching label; "max" looks at
             every matching label and keeps the highest number (e.g. the
             maximum charging effect when a page lists several).
+        append: Patterns for labels whose value is added after the main
+            value, e.g. "Prosessortype: Intel Core i7" + "Nummer: 14700F"
+            → "Intel Core i7 14700F".
     """
 
     key: str
@@ -69,6 +74,7 @@ class SpecRule:
     why: str
     order: tuple[str, ...] = ()
     aggregate: str = "first"
+    append: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

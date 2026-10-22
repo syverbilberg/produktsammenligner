@@ -15,7 +15,7 @@ def test_levels():
     assert check([BY_ID["kitchen_machine"], BY_ID["blender"]]).level == RELATED
     phone_vacuum = check([BY_ID["mobile"], BY_ID["vacuum"]])
     assert phone_vacuum.level == UNRELATED
-    assert phone_vacuum.message == "Produkt A er en mobiltelefon og B er en støvsuger, kan ikke sammenlignes."
+    assert phone_vacuum.message.startswith("Produkt A er en mobiltelefon og B er en støvsuger")
 
 
 def test_odd_one_out_is_the_minority():

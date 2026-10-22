@@ -16,7 +16,7 @@ from src.categories.scenarios import SCENARIOS
 from src.comparison.fallback_extractor import EXTRACTORS, NAME, TEXT
 from src.models import SpecRule
 
-KINDS = {"higher", "lower", "energy", "yes", "rank", "info"}
+KINDS = {"higher", "lower", "energy", "yes", "rank", "info", "cpu", "gpu"}
 AGGREGATES = {"first", "max"}
 
 
@@ -32,7 +32,7 @@ def _check_rule(rule: SpecRule, where: str) -> list[str]:
         problems.append(f"{where}: rank-regel uten rekkefølge (order)")
     if rule.aggregate == "max" and rule.kind not in ("higher", "lower"):
         problems.append(f"{where}: aggregate=max gir bare mening for tall")
-    for pattern in rule.patterns:
+    for pattern in rule.patterns + rule.append:
         if pattern != pattern.lower():
             problems.append(f"{where}: mønsteret «{pattern}» må være små bokstaver")
         try:

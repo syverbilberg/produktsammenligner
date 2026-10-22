@@ -24,10 +24,10 @@ def render_choice(compat) -> None:
         html('<div class="ps-sub">Hva vil du gjøre?</div>')
         for index in compat.odd_ones:
             st.button(f"Bytt produkt {LETTERS[index]}", key=f"replace_{index}", on_click=state.replace_product,
-                      args=(index,), use_container_width=True)
+                      args=(index,), width="stretch")
         if not st.session_state.side_by_side:
             st.button("Vis likevel side om side", key="show_side_by_side", type="primary",
-                      on_click=state.show_side_by_side, use_container_width=True)
+                      on_click=state.show_side_by_side, width="stretch")
 
 
 def render_overview(key: str) -> None:

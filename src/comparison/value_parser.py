@@ -109,6 +109,10 @@ def fit(kind: str, value: str | None, aggregate: str = "first") -> int:
         return 0 if np.isnan(parse_energy_class(value)) else 2
     if kind == "yes":
         return 2 if _YES_NO.match(value) else 1
+    if kind in ("cpu", "gpu"):
+        from src.comparison.hardware import cpu_score, gpu_score
+        score = cpu_score(value) if kind == "cpu" else gpu_score(value)
+        return 1 if _YES_NO.match(value) else (2 if not np.isnan(score) else 1)
     if kind == "info":
         return 1 if _YES_NO.match(value) else 2
     return 2  # rank: any text; unknown words simply give no winner

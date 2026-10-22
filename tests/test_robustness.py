@@ -21,7 +21,8 @@ from src.text import fold
 from tests import real_pages as pages
 
 ALL_PAGES = [pages.S26, pages.S25, pages.HP_LAPTOP, pages.BOSCH_MUMS6, pages.KENWOOD_KVL85, pages.ASKO_DISHWASHER,
-             pages.ROBOROCK_SAROS20S, pages.DREAME_X60_PRO]
+             pages.ROBOROCK_SAROS20S, pages.DREAME_X60_PRO, pages.PCS_PRIME400, pages.LEGION_TOWER5,
+             pages.LG_B5_TV, pages.ASKO_W3096, pages.SONY_XM6, pages.LG_DRYER, pages.MELITTA_SOLO]
 
 
 def build(page: dict) -> Product:
@@ -74,7 +75,7 @@ def test_laptop_real_labels():
     v = values(pages.HP_LAPTOP)
     assert v["ram"][0] == "16 GB"                               # not "RAM-type: DDR4"
     assert v["storage"][0] == "512 GB"
-    assert v["processor"][0] == "Intel Core 5"
+    assert v["processor"][0] == "Intel Core 5 120U"           # type + "Nummer"
     assert v["screen_size"][0] == '14"'
     assert v["brightness"][0] == "250"                       # label is "Nit"
     assert v["battery_life"][0] == "7.5 timer"
@@ -114,7 +115,9 @@ def test_every_category_is_reachable_from_its_url(category):
 @pytest.mark.parametrize("page", ALL_PAGES, ids=lambda p: p["name"][:30])
 def test_real_pages_get_the_right_category(page):
     expected = {"Mobiltelefon": "mobile", "Bærbar PC": "laptop", "Kjøkkenmaskin": "kitchen_machine",
-                "Oppvaskmaskin": "dishwasher", "Robotstøvsuger": "vacuum"}[page["specs"]["Produkttype"]]
+                "Oppvaskmaskin": "dishwasher", "Robotstøvsuger": "vacuum", "Stasjonær gaming-PC": "desktop",
+                "TV": "tv", "Vaskemaskin": "washer", "Hodetelefoner": "headphones", "Tørketrommel": "dryer",
+                "Kaffemaskin": "coffee"}[page["specs"]["Produkttype"]]
     assert detect_category(build(page)).id == expected
 
 
@@ -188,3 +191,84 @@ def test_units_are_converted_before_comparing():
     from src.categories.guide import BATTERY_LIFE
     assert pick_winner(BATTERY_LIFE, ("190 min", "3 timer")) == 0    # 190 min > 180 min
     assert pick_winner(BATTERY_LIFE, ("150 min", "3 timer")) == 1
+
+
+def test_gaming_desktops_show_gpu_and_cpu():
+    """The bug from the user: GPU not shown, no winner for the CPU."""
+    pcs, legion = values(pages.PCS_PRIME400), values(pages.LEGION_TOWER5)
+    assert pcs["gpu"][0] == "GeForce RTX 5070" and legion["gpu"][0] == "GeForce RTX 5070"
+    assert pcs["processor"][0] == "Intel Core i7 14700F"                # "Prosessortype" + "Nummer"
+    assert legion["processor"][0] == "AMD Ryzen 7 7700X"
+    assert pcs["vram"][0] == "12" and pcs["psu"][0] == "750 W"
+    assert pcs["ram_max"][0] == "192 GB"
+
+
+def test_cpu_and_gpu_get_winners_only_when_the_gap_is_clear():
+    from src.comparison.scorer import pick_winner
+    from src.categories.guide import GPU, PROCESSOR
+    assert pick_winner(GPU, ("GeForce RTX 5070", "GeForce RTX 5060 Ti")) == 0
+    assert pick_winner(GPU, ("GeForce RTX 5070", "GeForce RTX 5070")) is None
+    assert pick_winner(GPU, ("Radeon RX 9070 XT", "GeForce RTX 5070")) == 0
+    assert pick_winner(PROCESSOR, ("Intel Core i5 14400F", "Intel Core i7 14700F")) == 1
+    assert pick_winner(PROCESSOR, ("Intel Core i7 14700F", "AMD Ryzen 7 7700X")) == 0      # 20 vs 8 cores
+    assert pick_winner(PROCESSOR, ("Intel Core i7 14700F", "Intel Core i7 14700K")) is None  # close: no made-up winner
+    assert pick_winner(PROCESSOR, ("AMD Ryzen 7 9800X3D", "AMD Ryzen 5 7600")) == 0
+    assert pick_winner(PROCESSOR, ("Snapdragon 8 Elite for Galaxy", "Exynos 2200")) == 0
+
+
+def test_desktop_comparison_lists_gpu_first():
+    products = [build(pages.PCS_PRIME400), build(pages.LEGION_TOWER5)]
+    rows, _, _ = build_rows(products)
+    assert rows[0].rule.key == "gpu"
+    keys = [r.rule.key for r in rows]
+    assert {"gpu", "vram", "processor", "ram", "storage", "psu"} <= set(keys)
+
+
+def test_tv_real_labels():
+    v = values(pages.LG_B5_TV)
+    assert v["panel"][0] == "OLED" and v["refresh"][0] == "120 Hz"        # "Bildepanelfrekvens (Hz)"
+    assert v["panel_score"][0] == "8" and v["contrast_score"][0] == "10"
+    assert v["hdr_formats"][0] == "Dolby Vision"
+    assert v["dolby_vision"][0] == "Ja"
+    assert v["hdmi_count"][0] == "3" and v["hdmi_standard"][0] == "HDMI 2.1"
+    assert v["vrr"][0] == "Ja" and v["allm"][0] == "Ja" and v["platform"][0] == "webOS"
+    assert v["atmos"] == ("Ja", "beskrivelsen") and v["sound_w"][0] == "20 W"
+
+
+def test_washer_real_labels():
+    v = values(pages.ASKO_W3096)
+    assert v["capacity_kg"][0] == "9 kg" and v["spin"][0] in ("1600 o/min", "1600")
+    assert v["noise"][0] == "70 dB"                                          # "Luftbåren akustisk lydutslipp …"
+    assert v["water"][0] == "35 liter/syklus"
+    assert v["auto_dose"] == ("Ja", "beskrivelsen") and v["steam"] == ("Ja", "beskrivelsen")
+
+
+def test_headphones_real_labels():
+    v = values(pages.SONY_XM6)
+    assert v["anc"][0] == "Ja"                                               # "Aktiv støykansellering"
+    assert v["battery_anc"][0] == "30 timer" and v["battery_life"][0] == "40 timer"
+    assert v["multipoint"] == ("Ja", "beskrivelsen")
+    assert v["weight"][0] == "254 g" and v["hires"][0] == "Hi-Res Audio"
+
+
+def test_dryer_heat_pump_is_not_ranked_as_condenser():
+    v = values(pages.LG_DRYER)
+    assert v["heat_pump"][0] == "Ja" and v["tech"][0] == "Kondens"
+    assert v["capacity_kg"][0] == "9 kg" and v["noise"][0] == "62 dB"
+    assert v["moisture"][0] == "Sensor" and v["energy_year"][0] == "194"
+
+
+def test_coffee_machine_real_labels():
+    v = values(pages.MELITTA_SOLO)
+    assert v["type"][0] == "Automatisk" and v["grinder"][0] == "Ja" and v["grind_levels"][0] == "5"
+    assert v["milk"][0] == "Ja" and v["frother"][0] == "Ja" and v["pressure"][0] == "15 Bar"
+    assert v["water_tank"][0] == "1.2 liter"                                 # "(I)" is Elkjøp's typo for liter
+    assert v["rinse"][0] == "Ja" and v["descale_alert"][0] == "Ja"
+
+
+@pytest.mark.parametrize("category", CATEGORIES, ids=lambda c: c.id)
+def test_every_category_has_a_comparable_key_spec(category):
+    """Every category must have at least three rules that can pick a winner,
+    so a comparison never ends up as only "Info" rows."""
+    comparable = [r for r in category.rules if r.kind != "info"]
+    assert len(comparable) >= 3, category.id

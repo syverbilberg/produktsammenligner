@@ -21,11 +21,11 @@ from src.categories import dimensions as d
 from src.models import Category, SpecRule
 
 
-def rule(key, label, patterns, kind, dimension, why, order=(), aggregate="first") -> SpecRule:
+def rule(key, label, patterns, kind, dimension, why, order=(), aggregate="first", append=()) -> SpecRule:
     """Short constructor so the tables below stay readable."""
     if isinstance(patterns, str):
         patterns = (patterns,)
-    return SpecRule(key, label, tuple(patterns), kind, dimension, why, tuple(order), aggregate)
+    return SpecRule(key, label, tuple(patterns), kind, dimension, why, tuple(order), aggregate, tuple(append))
 
 
 # ------------------------------------------------------------ universal rules
@@ -43,19 +43,24 @@ UNIVERSAL_RULES = (RELEASE_YEAR,)
 # ---------------------------------------------------------------- shared rules
 ENERGY = rule("energy", "Energiklasse", r"^energiklasse", "energy", d.ENERGY,
               "Bedre klasse gir lavere strømregning over mange år.")
-NOISE = rule("noise", "Støynivå (dB)", (r"^(lyd|støy)nivå", r"^støy.*db", r"lydnivå"), "lower", d.NOISE,
+# seen: "Lydnivå (dB)", "Lydnivå tørk (dB)", "Luftbåren akustisk lydutslipp sentrifugeringsfase (dB)"
+NOISE = rule("noise", "Støynivå (dB)", (r"^(lyd|støy)nivå", r"^støy.*db", r"lydnivå", r"lydutslipp(?!-klasse).*\(db\)"),
+             "lower", d.NOISE,
              "Under ca. 40 dB er stille nok for åpen kjøkkenløsning.")
-# seen: "Prosessortype: Intel Core 5" (laptop). Phones: "Prosessor"/"Brikkesett".
+# seen: "Prosessortype: Intel Core i7" + "Nummer: 14700F" (desktop/laptop). Phones: "Prosessor"/"Brikkesett".
+# Ranked roughly by comparison/hardware.py; near-equal chips give no winner.
 PROCESSOR = rule("processor", "Prosessor",
-                 (r"^prosessor(modell)?$", r"^prosessortype$", r"^brikkesett", r"^chipset$", r"^prosessor \("),
-                 "info", d.PERFORMANCE, "Bestemmer hvor raskt alt føles – sammenlign serie og generasjon.")
+                 (r"^prosessor(modell)?$", r"^prosessortype$", r"^brikkesett", r"^prosessor \(", r"^cpu"),
+                 "cpu", d.PERFORMANCE,
+                 "Bestemmer hvor raskt alt føles. Rangert omtrentlig etter serie og generasjon – små forskjeller teller ikke.",
+                 append=(r"^nummer$", r"^prosessornummer"))
 # seen: "Internminne/RAM (GB): 16" (laptop). Phones often lack it (then: from the name "12/256GB").
 RAM = rule("ram", "RAM (GB)",
            (r"internminne/ram", r"^(ram|arbeidsminne|systemminne|minne)( \(gb\))?$", r"^ram-?størrelse", r"^ram \(gb\)"),
            "higher", d.PERFORMANCE, "Mer RAM gir bedre multitasking og lengre levetid.")
 # seen: "Intern lagring (GB): 256" (phone), "Total lagringskapasitet (GB): 512" (laptop)
 STORAGE = rule("storage", "Lagring (GB)",
-               (r"^intern lagring", r"^total lagringskapasitet", r"^lagringskapasitet( \(gb\))?$",
+               (r"^intern lagring", r"^total lagringskapasitet", r"^lagringskapasitet( \(gb\))?$", r"^total ssd kapasitet",
                 r"^lagringskapasitet ssd", r"^lagring( \(gb\))?$"),
                "higher", d.CAPACITY, "Plass til bilder, video, apper og spill.")
 # seen: "Størrelse (tommer): 6.3" (phone), "Størrelse (tommer): 14" (laptop)
@@ -67,10 +72,12 @@ RESOLUTION = rule("resolution", "Oppløsning",
                   (r"^oppløsningsstandard", r"^skjermoppløsning", r"^maks oppløsning", r"^oppløsning$"),
                   "info", d.DISPLAY, "Høyere oppløsning gir skarpere bilde.")
 # seen: "Oppdateringsfrekvens: 120"
-REFRESH = rule("refresh", "Oppdateringsfrekvens (Hz)", (r"^oppdateringsfrekvens", r"^bildefrekvens", r"refresh"),
+# seen: "Oppdateringsfrekvens: 120" (phone/laptop), "Bildepanelfrekvens (Hz): 120" (TV)
+REFRESH = rule("refresh", "Oppdateringsfrekvens (Hz)",
+               (r"^oppdateringsfrekvens", r"^bildepanelfrekvens", r"^bildefrekvens", r"^refresh"),
                "higher", d.DISPLAY, "Høyere Hz gir jevnere bevegelser i spill, sport og scrolling.")
 # seen: "Nit: 250" (laptop)
-BRIGHTNESS = rule("brightness", "Lysstyrke (nits)", (r"^nits?$", r"^lysstyrke", r"cd/m"),
+BRIGHTNESS = rule("brightness", "Lysstyrke (nits)", (r"^nits?$", r"^lysstyrke(?!.*score)", r"cd/m"),
                   "higher", d.DISPLAY, "Lysere skjerm er lettere å se i sollys og gir bedre HDR.")
 # seen: "Display: OLED" (phone), "Display: SVA" / "Displayteknologi: SVA" (laptop)
 DISPLAY_TYPE = rule("screen_type", "Skjermtype",
@@ -80,7 +87,8 @@ DISPLAY_TYPE = rule("screen_type", "Skjermtype",
 # seen: "Leverandørens oppgitte batterilevetid opptil (timer): 7.5" (laptop),
 #       "Batteriets holdbarhet per syklus i timer og minutter per full batterilading: 51" (phone)
 BATTERY_LIFE = rule("battery_life", "Batteritid",
-                    (r"batterilevetid", r"holdbarhet per syklus", r"^batteritid", r"spilletid", r"^brukstid", r"driftstid"),
+                    (r"batterilevetid", r"holdbarhet per syklus", r"^batteritid(?!.*stand ?by)", r"spilletid",
+                     r"^musikkavspillingstid(?!.*anc)", r"avspillingstid(?!.*anc)", r"^brukstid", r"driftstid"),
                     "higher", d.BATTERY, "Hvor lenge den varer mellom hver lading.")
 # seen: "Batteriets holdbarhet i sykluser: 2700" (phone, EU label)
 BATTERY_CYCLES = rule("battery_cycles", "Batteriets levetid (ladesykluser)", r"holdbarhet i sykluser",
@@ -104,7 +112,7 @@ UPDATES = rule("updates", "Programvareoppdateringer (år)",
                (r"programvareoppdatering", r"sikkerhetsoppdatering", r"os-oppdatering", r"^oppdateringer"),
                "higher", d.LIFESPAN, "Flere års oppdateringer = tryggere og lengre levetid.")
 # seen: "IP-klassifisering: IP68"
-IP_RATING = rule("ip", "Vann-/støvtetthet", (r"^ip-?klass", r"vanntett", r"\bip\d"),
+IP_RATING = rule("ip", "Vann-/støvtetthet", (r"^ip-?klass", r"vanntett", r"^vannresist", r"\bip\d"),
                  "rank", d.DURABILITY, "Tåler vann og støv – viktig for uhell og utebruk.",
                  ("ip68", "ip67", "ipx7", "ip65", "ipx5", "ip54", "ipx4"))
 TOUCH = rule("touch", "Berøringsskjerm", (r"^touch-?skjerm", r"berøringsskjerm"), "yes", d.FEATURES,
@@ -116,9 +124,23 @@ POWER = rule("power_w", "Effekt (W)", (r"^effekt( \(w(att)?\))?$", r"^motorkraft
              "higher", d.PERFORMANCE, "Mer effekt gir raskere og kraftigere resultat.")
 DISHWASHER_SAFE = rule("dishwasher_safe", "Tåler oppvaskmaskin", (r"oppvaskmaskin(sikker|trygg)", r"tåler oppvaskmaskin"),
                        "yes", d.FEATURES, "Enklere rengjøring.")
-GPU = rule("gpu", "Grafikkort", (r"^grafikkort$", r"^grafikkortmodell", r"^gpu-?modell", r"^grafikkprosessor",
-                                 r"^arkitektur grafikkort", r"^hovedmerke \(gpu\)"),
-           "info", d.PERFORMANCE, "Integrert holder til kontor; dedikert (RTX) for spill og video.")
+# seen: "Grafikkløsning (Modell): GeForce RTX 5070" (desktop), "Arkitektur grafikkort: Delt" (laptop, integrated)
+GPU = rule("gpu", "Grafikkort",
+           (r"^grafikkløsning", r"^grafikkort$", r"^grafikkortmodell", r"^gpu-?modell", r"^grafikkprosessor",
+            r"^arkitektur grafikkort", r"^hovedmerke \(gpu\)"),
+           "gpu", d.PERFORMANCE,
+           "Viktigst for spill og video. Rangert etter omtrentlig spillytelse – samme modell fra ulike merker yter likt.")
+# seen: "Dedikert videominne: 12"
+VRAM = rule("vram", "Grafikkminne (GB)", (r"^dedikert videominne", r"^grafikkminne", r"vram", r"grafikk.*minne"),
+            "higher", d.PERFORMANCE, "8 GB er minimum for nye spill, 12 GB+ anbefales.")
+CORES = rule("cores", "Prosessorkjerner", r"^antall prosessorkjerner", "higher", d.PERFORMANCE,
+             "Flere kjerner hjelper ved tunge oppgaver som video og mange programmer samtidig.")
+RAM_MAX = rule("ram_max", "Maks RAM etter oppgradering (GB)", r"^maksimalt støttet minne", "higher", d.LIFESPAN,
+               "Hvor mye RAM PC-en kan oppgraderes til senere.")
+# seen: "Forbruk, kWh/år: 194" (dryer)
+ENERGY_YEAR = rule("energy_year", "Strømforbruk (kWh/år)",
+                   (r"kwh/år", r"kwh per år", r"årlig energiforbruk", r"energiforbruk.*\(kwh/år\)"),
+                   "lower", d.ENERGY, "Lavere årlig forbruk gir lavere strømregning.")
 
 # ------------------------------------------------------------------ categories
 CATEGORIES: tuple[Category, ...] = (
@@ -169,32 +191,30 @@ CATEGORIES: tuple[Category, ...] = (
         rule("sleep", "Søvnmåling", r"søvn", "yes", d.FEATURES, "Følger med på søvnkvalitet."),
         rule("gps", "GPS", r"\bgps\b", "yes", d.FEATURES, "Måler tur og løp uten mobilen."),
         rule("lte", "LTE/eSIM", (r"\blte\b", r"esim", r"^mobilnett"), "yes", d.CONNECTIVITY, "Ring og bruk data uten mobilen."),
-        rule("water_resist", "Vanntetthet", (r"vanntett", r"\batm\b", r"vannmotstand", r"^ip-?klass"), "rank", d.DURABILITY,
+        rule("water_resist", "Vanntetthet", (r"vanntett", r"\batm\b", r"vannmotstand", r"vannavvis", r"^ip-?klass"), "rank", d.DURABILITY,
              "5 ATM eller mer for svømming.", ("10 atm", "5 atm", "ip68", "3 atm")),
     )),
     Category("headphones", "Hodetelefoner og øreplugger",
              ("hodetelefon", "øreplugg", "airpods", "earbuds", "øretelefon"), name_generations=True, rules=(
         rule("type", "Type", (r"^hodetelefontype", r"^bæremåte", r"^formfaktor", r"^type hodetelefon"), "info", d.FEATURES,
              "In-ear, on-ear eller over-ear – handler om komfort og bruk."),
-        rule("anc", "Aktiv støydemping (ANC)", (r"aktiv støydemping", r"støydemping", r"\banc\b", r"støyreduksjon"), "yes", d.SOUND,
+        # seen on Sony WH-1000XM6: "Aktiv støykansellering", "Musikkavspillingstid med ANC på (timer)"
+        rule("anc", "Aktiv støydemping (ANC)", (r"aktiv støy(demping|kansellering)", r"støydemping", r"støykansellering",
+                                                r"\banc\b", r"støyreduksjon"), "yes", d.SOUND,
              "Demper fly-, buss- og kontorstøy."),
+        rule("battery_anc", "Batteritid med ANC", r"avspillingstid med anc", "higher", d.BATTERY,
+             "Den reelle batteritiden når støydempingen er på."),
         BATTERY_LIFE,
+        rule("hires", "Lydkvalitet", r"^audio-støtte", "info", d.SOUND, "Hi-Res Audio gir mer detaljer med riktig telefon og kodek."),
         rule("codec", "Kodek", (r"kodek", r"codec"), "info", d.SOUND,
              "Bestemmer lydkvaliteten over Bluetooth – avhenger av hvilken telefon kunden har."),
         rule("multipoint", "Multipoint", (r"multipoint", r"flerpunkt"), "yes", d.CONNECTIVITY,
              "Koblet til PC og mobil samtidig."),
         rule("mic", "Mikrofon", r"^mikrofon", "yes", d.FEATURES, "For samtaler og møter."),
-        IP_RATING,
+        IP_RATING, WEIGHT,
     )),
     Category("laptop", "Bærbare PC-er", ("bærbar", "barbar", "laptop", "macbook", "chromebook"), rules=(
-        PROCESSOR,
-        rule("cores", "Prosessorkjerner", r"^antall prosessorkjerner", "higher", d.PERFORMANCE,
-             "Flere kjerner hjelper ved tunge oppgaver som video og mange programmer samtidig."),
-        RAM,
-        # seen: "Maksimalt støttet minne (GB): 16"
-        rule("ram_max", "Maks RAM etter oppgradering (GB)", r"^maksimalt støttet minne", "higher", d.LIFESPAN,
-             "Hvor mye RAM PC-en kan oppgraderes til senere."),
-        STORAGE, GPU, SCREEN_SIZE, RESOLUTION, DISPLAY_TYPE, REFRESH, BRIGHTNESS, TOUCH,
+        PROCESSOR, GPU, CORES, RAM, RAM_MAX, STORAGE, VRAM, SCREEN_SIZE, RESOLUTION, DISPLAY_TYPE, REFRESH, BRIGHTNESS, TOUCH,
         BATTERY_LIFE, FAST_CHARGE, CHARGER, WEIGHT,
         rule("hdmi", "HDMI", (r"^hdmi-tilkobling", r"^hdmi$"), "yes", d.CONNECTIVITY, "Kobles rett til TV eller skjerm."),
         rule("thunderbolt", "Thunderbolt", r"^thunderbolt$", "yes", d.CONNECTIVITY, "Rask tilkobling til dokking og skjermer."),
@@ -205,13 +225,17 @@ CATEGORIES: tuple[Category, ...] = (
         rule("os", "Operativsystem", (r"^operativsystem versjon", r"^type operativsystem", r"^operativsystem$"), "info",
              d.FEATURES, "Windows, macOS eller ChromeOS."),
     )),
-    Category("desktop", "Stasjonære PC-er", ("stasjonær", "stasjonaer", "gaming-pc", "desktop", "gamingpc"), rules=(
-        PROCESSOR, RAM, STORAGE, GPU,
-        rule("vram", "Grafikkminne (GB)", (r"^grafikkminne", r"vram", r"grafikk.*minne"), "higher", d.PERFORMANCE,
-             "8 GB minimum, 12 GB+ anbefalt for nye spill."),
-        rule("psu", "Strømforsyning (W)", (r"^strømforsyning", r"\bpsu\b"), "higher", d.LIFESPAN,
-             "Mer effekt gir rom for oppgraderinger senere."),
-        rule("cooling", "Kjøling", r"kjøling", "info", d.NOISE, "God kjøling gir lavere støy."),
+    # seen on PCSpecialist Prime 400 and Lenovo Legion Tower 5: GPU first – it decides gaming performance.
+    Category("desktop", "Stasjonære PC-er", ("stasjonær", "stasjonar", "gaming-pc", "desktop", "gamingpc"), rules=(
+        GPU, VRAM, PROCESSOR, CORES, RAM, RAM_MAX, STORAGE,
+        rule("psu", "Strømforsyning (W)", (r"^strømforsyning( \(watt\))?$", r"^strømforsyning", r"\bpsu\b"), "higher",
+             d.LIFESPAN, "Mer effekt gir rom for et kraftigere grafikkort senere."),
+        rule("cooling", "Kjøling", (r"^type avkjøling", r"kjøling"), "info", d.NOISE,
+             "Vannkjøling er ofte stillere under full belastning; god luftkjøling holder for de fleste."),
+        rule("wifi_std", "Wi-Fi-standard", r"^wifi-standard", "rank", d.CONNECTIVITY, "Nyere Wi-Fi gir raskere og mer stabilt nett.",
+             ("wi-fi 7", "wi-fi 6e", "wi-fi 6", "wi-fi 5")),
+        rule("os", "Operativsystem", (r"^operativsystem versjon", r"^type operativsystem"), "info", d.FEATURES,
+             "Windows Home holder for de fleste."),
     )),
     Category("monitor", "Skjermer", ("pc-skjerm", "dataskjerm", "gamingskjerm", "monitor", "skjerm"), rules=(
         SCREEN_SIZE, RESOLUTION,
@@ -219,6 +243,12 @@ CATEGORIES: tuple[Category, ...] = (
              "rank", d.DISPLAY, "OLED best bilde, IPS gode farger, VA god kontrast, TN utdatert.", ("oled", "ips", "va", "tn")),
         REFRESH,
         rule("response", "Responstid (ms)", r"responstid", "lower", d.DISPLAY, "1 ms er ideelt for gaming."),
+        BRIGHTNESS,
+        rule("contrast", "Kontrast", (r"^kontrast(forhold)?$", r"^kontrastforhold"), "info", d.DISPLAY,
+             "Høyere kontrast gir dypere svart – OLED og VA er best."),
+        rule("hdr", "HDR", (r"^hdr \(", r"^hdr$", r"^hdr-standard"), "info", d.DISPLAY, "Gir bedre lys og farger i støttede spill og filmer."),
+        rule("adaptive_sync", "G-Sync/FreeSync", (r"freesync", r"g-?sync", r"adaptive ?sync"), "info", d.DISPLAY,
+             "Fjerner hakking og «tearing» i spill."),
         rule("displayport", "DisplayPort", r"displayport", "yes", d.CONNECTIVITY, "Best for høy Hz på PC."),
         rule("usbc_pd", "USB-C med lading", (r"usb-c power delivery", r"power delivery", r"^usb-c"), "yes", d.CONNECTIVITY,
              "Én kabel til laptopen – bilde og strøm."),
@@ -234,20 +264,34 @@ CATEGORIES: tuple[Category, ...] = (
         rule("scan", "Skanner", r"skann", "yes", d.FEATURES, "Skann og kopier."),
         WIFI,
     )),
+    # seen on LG 65" B5: Panelteknologi, Størrelse (tommer), Oppløsning, Bildepanelfrekvens (Hz),
+    # "High Dynamic Range (HDR) standard: Dolby Vision", Antall HDMI-innganger, HDMI-standard,
+    # Variable Refresh Rate (VRR), Smart-TV-plattform, Lydeffekt (watt), Elkjøp's own panel scores.
     Category("tv", "TV", ("tv", "oled-tv", "fjernsyn", "qled"), rules=(
         rule("panel", "Skjermteknologi",
-             (r"^skjermteknologi", r"^paneltype", r"^panelteknologi", r"^displayteknologi", r"^display$"), "rank",
+             (r"^panelteknologi", r"^skjermteknologi", r"^paneltype", r"^displayteknologi", r"^display$"), "rank",
              d.DISPLAY, "OLED gir perfekt svart; Mini LED/QLED er lysere for lyse rom.",
              ("oled", "mini led", "neo qled", "qned", "qled", "led")),
+        rule("panel_score", "Elkjøps panelscore (0–10)", r"^panelscore", "higher", d.DISPLAY,
+             "Elkjøps samlede vurdering av bildet."),
+        rule("contrast_score", "Kontrast (score)", r"^kontrast ?score", "higher", d.DISPLAY, "Høy score = dyp svart, viktig i mørkt rom."),
+        rule("brightness_score", "Lysstyrke (score)", r"^lysstyrke ?score", "higher", d.DISPLAY, "Høy score = godt bilde i lyse rom."),
+        rule("color_score", "Fargegjengivelse (score)", r"^fargegjengivelse", "higher", d.DISPLAY, "Naturlige og riktige farger."),
         SCREEN_SIZE, RESOLUTION, REFRESH,
+        rule("hdr_formats", "HDR-formater", (r"high dynamic range \(hdr\) standard", r"^hdr-standard", r"^hdr-format"), "info",
+             d.DISPLAY, "Dolby Vision og HDR10+ gir best HDR fra strømmetjenester."),
         rule("dolby_vision", "Dolby Vision", r"dolby vision", "yes", d.DISPLAY, "Bedre HDR på Netflix, Disney+ osv."),
-        rule("hdmi21", "Antall HDMI 2.1-innganger", r"hdmi 2\.1", "higher", d.CONNECTIVITY, "Trengs for PS5/Xbox i 4K 120 Hz."),
+        rule("hdmi_count", "Antall HDMI-innganger", r"^antall hdmi", "higher", d.CONNECTIVITY, "Plass til konsoll, lydplanke og dekoder."),
+        rule("hdmi_standard", "HDMI-standard", r"^hdmi-standard", "rank", d.CONNECTIVITY, "HDMI 2.1 trengs for PS5/Xbox i 4K 120 Hz.",
+             ("2.1", "2.0", "1.4")),
         rule("vrr", "VRR", (r"\bvrr\b", r"variabel oppdatering"), "yes", d.FEATURES, "Jevnere bilde i spill."),
-        rule("platform", "Smart-TV-plattform", (r"^smart ?tv-plattform", r"^operativsystem", r"^plattform"), "info", d.FEATURES,
-             "Google TV, Tizen eller webOS – bestemmer apper og brukervennlighet."),
+        rule("allm", "Automatisk spillmodus (ALLM)", (r"\ballm\b", r"auto low latency"), "yes", d.FEATURES,
+             "TV-en bytter selv til lav forsinkelse når konsollen starter."),
+        rule("platform", "Smart-TV-plattform", (r"^smart-?\s?tv-plattform", r"^operativsystem", r"^plattform"), "info",
+             d.FEATURES, "Google TV, Tizen eller webOS – bestemmer apper og brukervennlighet."),
         rule("sound_w", "Lydeffekt (W)", (r"^lydeffekt", r"utgangseffekt", r"høyttalereffekt"), "higher", d.SOUND,
              "De fleste TV-er har nytte av en lydplanke uansett."),
-        ATMOS, ENERGY,
+        ATMOS, ENERGY, ENERGY_YEAR,
     )),
     Category("soundbar", "Lydplanker og høyttalere", ("lydplanke", "soundbar", "høyttaler", "hoyttaler"), rules=(
         rule("channels", "Kanaler", (r"^kanaler", r"kanalkonfig"), "info", d.SOUND, "Flere kanaler gir mer surround; «.2» = lyd ovenfra."),
@@ -277,16 +321,21 @@ CATEGORIES: tuple[Category, ...] = (
              ("fullformat", "full frame", "aps-c", "micro four thirds", "1\"")),
         rule("megapixels", "Megapiksler (MP)", (r"megapiksel", r"effektive piksler"), "info", d.CAMERA, "24–33 MP holder for de fleste."),
         rule("autofocus", "Autofokus", r"^autofokus", "info", d.CAMERA, "Øye-/motivfølging gjør det lettere å treffe."),
-        rule("video", "Video", (r"^opptaksoppløsning", r"^videooppløsning", r"^video"), "info", d.CAMERA,
-             "4K 60 fps og 10-bit for seriøs video."),
+        rule("video_res", "Video", (r"^opptaksoppløsning", r"^videooppløsning", r"^video"), "rank", d.CAMERA,
+             "4K 60 fps og 10-bit for seriøs video.", ("8k", "6k", "5.7k", "4k", "full hd", "1080")),
         rule("ibis", "Bildestabilisering", (r"stabilisering", r"\bibis\b"), "yes", d.CAMERA, "Skarpere bilder på håndholdt."),
+        rule("shots", "Bilder per lading", (r"bilder per (lading|batteri)", r"^batterikapasitet.*bilder", r"^antall bilder"),
+             "higher", d.BATTERY, "Flere bilder før du må lade eller bytte batteri."),
+        rule("weather_sealed", "Værbestandig", (r"værbestandig", r"værtett", r"vær- og støv"), "yes", d.DURABILITY,
+             "Tåler regn og støv på tur."),
+        WIFI, WEIGHT,
     )),
     Category("fridge", "Kjøleskap og frysere", ("kjøleskap", "kjoleskap", "fryser", "kombiskap", "fryseboks"), rules=(
         rule("volume", "Totalvolum (liter)", (r"^totalvolum", r"^nettovolum(?!.*(kjøl|frys))", r"^volum", r"^kapasitet.*liter"),
              "higher", d.CAPACITY, "Kjøl: 50–100 L per person. Frys: ca. 50 L + 30 L per ekstra person."),
         rule("fridge_volume", "Kjølevolum (liter)", (r"kjøl.*volum", r"volum.*kjøl"), "higher", d.CAPACITY, "Plass til ferskvarer."),
         rule("freezer_volume", "Frysevolum (liter)", (r"frys.*volum", r"volum.*frys"), "higher", d.CAPACITY, "Plass til frysevarer."),
-        ENERGY, NOISE,
+        ENERGY, ENERGY_YEAR, NOISE,
         rule("zero_zone", "Nullsone", (r"nullsone", r"0 ?°c", r"fresh ?zone", r"vitafresh"), "yes", d.FEATURES,
              "Kjøtt og fisk holder seg lenger."),
         rule("nofrost", "NoFrost", (r"no ?frost", r"frostfri"), "yes", d.FEATURES, "Slipper å avrime fryseren."),
@@ -314,24 +363,35 @@ CATEGORIES: tuple[Category, ...] = (
         rule("fuse", "Sikring", (r"^sikring", r"ampere"), "info", d.FEATURES, "Sjekk at sikringen hjemme passer (f.eks. 16A vs 2x16A)."),
     )),
     Category("washer", "Vaskemaskiner", ("vaskemaskin", "vaske-/tørkemaskin", "vasketørker"), rules=(
+        # seen on ASKO W3096RW: "Kapasitet vaskesyklus (kg)", "Sentrifugehastighet (o/min)",
+        # "Luftbåren akustisk lydutslipp sentrifugeringsfase (dB)", "Vektet vannforbruk vaskesyklus (liter/syklus)"
         rule("capacity_kg", "Kapasitet (kg)", (r"^kapasitet.*kg", r"^vaskekapasitet", r"^maks.*(last|fylling)"), "higher", d.CAPACITY,
              "Familie på fire: 8–9 kg. Mindre husstand: 6–7 kg."),
         rule("spin", "Sentrifuge (o/min)", (r"sentrifug", r"o/min", r"^turtall"), "higher", d.PERFORMANCE,
              "1400–1600 o/min gir tørrere klær og kortere tørketid."),
         ENERGY, NOISE,
+        rule("water", "Vannforbruk (liter per vask)", (r"vannforbruk",), "lower", d.ENERGY, "Lavere forbruk sparer vann og strøm."),
+        ENERGY_YEAR,
         rule("auto_dose", "Automatisk dosering", (r"dosering", r"autodos"), "yes", d.FEATURES, "Sparer vaskemiddel."),
         rule("steam", "Dampprogram", r"damp", "yes", d.FEATURES, "Mindre krøll og lukt."),
-        PROGRAMS,
+        PROGRAMS, WIFI,
     )),
+    # seen on LG RV9DN902B: "Type tørketrommel: Kondens" + "Varmepumpeteknologi: Ja" – a heat pump dryer is
+    # also a condenser dryer, so heat pump is its own yes-rule and the type is info.
     Category("dryer", "Tørketromler", ("tørketrommel", "torketrommel", "tørketromler"), rules=(
-        rule("tech", "Teknologi", (r"^tørketeknologi", r"^tørkemetode", r"^type tørketrommel", r"^teknologi"), "rank", d.ENERGY,
-             "Varmepumpe bruker mye mindre strøm og er skånsom mot klærne.", ("varmepumpe", "kondens", "ventil")),
-        rule("capacity_kg", "Kapasitet (kg)", (r"^kapasitet.*kg", r"^tørkekapasitet"), "higher", d.CAPACITY,
+        rule("heat_pump", "Varmepumpe", (r"^varmepumpe",), "yes", d.ENERGY,
+             "Varmepumpe bruker opptil halvparten så mye strøm og er skånsom mot klærne."),
+        rule("tech", "Type", (r"^type tørketrommel", r"^tørketeknologi", r"^tørkemetode"), "info", d.FEATURES,
+             "Kondens eller ventilasjon – varmepumpe er alltid kondens."),
+        rule("capacity_kg", "Kapasitet (kg)", (r"^tørkekapasitet", r"^kapasitet.*kg"), "higher", d.CAPACITY,
              "Bør være minst like stor som vaskemaskinen."),
-        ENERGY, NOISE,
-        rule("moisture", "Fuktsensor", (r"fuktsensor", r"fuktighetssensor", r"sensortørk"), "yes", d.FEATURES,
+        ENERGY, ENERGY_YEAR, NOISE,
+        rule("moisture", "Fuktsensor", (r"fuktsensor", r"fuktighetssensor", r"^tørkesystem", r"sensortørk"), "yes", d.FEATURES,
              "Stopper automatisk når tøyet er tørt."),
-        rule("drain", "Avløpsslange", (r"avløp", r"tømmeslange", r"drenering"), "yes", d.FEATURES, "Slipper å tømme vanntanken."),
+        rule("drain", "Kan kobles til avløp", (r"kobles til avløp", r"avløp", r"tømmeslange", r"drenering"), "yes", d.FEATURES,
+             "Slipper å tømme vanntanken."),
+        rule("steam", "Dampfunksjon", r"^damp", "yes", d.FEATURES, "Mindre krøll – kan erstatte stryking."),
+        WIFI,
     )),
     Category("dishwasher", "Oppvaskmaskiner", ("oppvaskmaskin",), rules=(
         # seen on Asko DBI8557MIMXXLS: all labels below
@@ -341,7 +401,7 @@ CATEGORIES: tuple[Category, ...] = (
         rule("basket_adjust", "Høydejusterbar overkurv", (r"høydejustering på øvre", r"justerbar (over|øvre)"), "yes", d.FEATURES,
              "Plass til høye glass og store kjeler."),
         NOISE, ENERGY,
-        rule("water", "Vannforbruk (liter per vask)", r"vannforbruk", "lower", d.ENERGY, "Lavere forbruk sparer vann og strøm."),
+        rule("water", "Vannforbruk (liter per vask)", (r"vannforbruk",), "lower", d.ENERGY, "Lavere forbruk sparer vann og strøm."),
         rule("install", "Installasjonstype", (r"^type oppvaskmaskin", r"^installasjon"), "info", d.FEATURES,
              "Helintegrert, semi-integrert, underbygd eller frittstående."),
         rule("width", "Bredde (cm)", r"^bredde \(cm\)", "info", d.CAPACITY, "45 eller 60 cm – må passe hullet."),
@@ -375,17 +435,26 @@ CATEGORIES: tuple[Category, ...] = (
              "info", d.CAPACITY, "Kan være robotens egen beholder eller posen i stasjonen – sjekk hva som menes."),
         NOISE,
     )),
+    # seen on Melitta Caffeo Solo & Perfect Milk: "Betjening: Automatisk", "Pumpetrykk (Bar)", "Integrert kaffekvern",
+    # "Antall kvernegrader", "Automatisk melkefunksjon", "Skumgenerator", "Vannbeholder (I)", "Rengjøringsprogram"
     Category("coffee", "Kaffemaskiner", ("kaffemaskin", "espressomaskin", "kaffetrakter", "kapselmaskin"), rules=(
-        rule("type", "Type", (r"^type kaffemaskin", r"^kaffemaskintype"), "info", d.FEATURES,
+        rule("type", "Type", (r"^type kaffemaskin", r"^kaffemaskintype", r"^betjening"), "info", d.FEATURES,
              "Helautomat, manuell espresso, kapsel eller filter."),
-        rule("milk", "Melkesystem", r"melk", "rank", d.FEATURES, "Automatisk melkeskum er enklest.",
-             ("automatisk", "melkeskummer", "dampdyse")),
+        rule("grinder", "Innebygd kvern", (r"integrert kaffekvern", r"^kvern", r"kaffekvern"), "yes", d.FEATURES,
+             "Ferskmalt kaffe smaker mest."),
+        rule("grind_levels", "Kvernegrader", r"^antall kvernegrader", "higher", d.FEATURES, "Flere trinn gir finere justering av smaken."),
+        rule("milk", "Automatisk melkesystem", (r"automatisk melkefunksjon", r"auto.?cappuccinatore", r"^melkesystem"),
+             "yes", d.FEATURES, "Lager cappuccino og latte med ett trykk."),
+        rule("frother", "Melkeskummer", (r"skumgenerator", r"melkeskummer", r"dampdyse", r"dampstav"), "yes", d.FEATURES,
+             "Kan lage melkeskum – manuelt eller automatisk."),
         rule("pressure", "Pumpetrykk (bar)", (r"^pumpetrykk", r"^trykk", r"\bbar\b"), "higher", d.PERFORMANCE,
              "15 bar er standard (9 bar i bryggeenheten er det som teller)."),
-        rule("grinder", "Kvern", r"kvern", "yes", d.FEATURES, "Ferskmalt kaffe smaker mest."),
+        rule("water_tank", "Vanntank", (r"^vannbeholder", r"vanntank"), "higher", d.CAPACITY, "Sjeldnere påfylling."),
         rule("brew_group", "Avtakbar bryggeenhet", r"bryggeenhet", "yes", d.FEATURES, "Enklere rengjøring."),
-        rule("rinse", "Automatisk skylling", (r"automatisk (skylling|rengjøring)", r"avkalk"), "yes", d.FEATURES,
-             "Mindre vedlikehold."),
+        rule("rinse", "Rengjøringsprogram", (r"rengjøringsprogram", r"automatisk (skylling|rengjøring)", r"avkalk"), "yes",
+             d.FEATURES, "Mindre vedlikehold."),
+        rule("descale_alert", "Kalkindikator", r"kalkindikator", "yes", d.FEATURES, "Sier fra når maskinen må avkalkes."),
+        WIFI,
     )),
     # seen on Bosch MUMS6ZS18 and Kenwood KVL85.004SI: Motorkraft (Watt), Bollevolum (Itr),
     # Kapasitet (kg), Antall boller, Hastighetinnstillinger, Turbo-/pulsknapp,

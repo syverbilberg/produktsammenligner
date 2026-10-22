@@ -167,3 +167,109 @@ DREAME_X60_PRO = {
     "description": "Avansert mopping for dypere rengjøring: Thermal Deep Mop-systemet kombinerer oppvarmede mopper, "
                    "høyt nedadgående trykk og rask rotasjon. Passerer automatisk hindringer og nivåforskjeller.",
 }
+
+# ------------------------------------------------------------ added Oct 22
+PCS_PRIME400 = {
+    "name": "PCSpecialist Prime 400 i7-14F/16/1000/5070 stasjonær gaming-PC",
+    "url": "https://www.elkjop.no/product/pc-datautstyr-og-kontor/pc/stasjonar-pc/"
+           "pcspecialist-prime-400-i7-14f1610005070-stasjonar-gaming-pc/901749",
+    "price": 17990, "rating": None, "reviews": None,
+    "specs": {
+        "Produsent CPU": "Intel", "Prosessortype": "Intel Core i7", "Nummer": "14700F", "Chipset": "b760",
+        "Arkitektur grafikkort": "Dedikert", "Hovedmerke (GPU)": "NVIDIA", "Grafikkløsning (Modell)": "GeForce RTX 5070",
+        "Grafikkort (serie)": "GeForce RTX 50 Series", "Dedikert videominne": "12", "RAM-type": "DDR5",
+        "Internminne/RAM (GB)": "16", "Maksimalt støttet minne (GB)": "192", "Lagringskapasitet SSD (GB)": "1000",
+        "Total lagringskapasitet (GB)": "1000", "Strømforsyning (watt)": "750", "Type avkjøling": "Vannkjøling",
+        "Kjølekapasitet (W)": "250", "Type operativsystem": "Windows", "Operativsystem versjon": "Windows 11 Home",
+        "Wi-Fi": "Ja", "WiFi-standard": "Wi-Fi 6E", "Bluetooth": "Ja", "Produkttype": "Stasjonær gaming-PC",
+        "Lanseringsår": "2025", "Optimalisert for gaming": "Ja", "Vekt (kg)": "12.584",
+    },
+    "description": "",
+}
+
+LEGION_TOWER5 = {
+    "name": "Lenovo Legion Tower 5 Gen 10 R7-7700X/16/1TB/5070 stasjonær gaming-PC",
+    "url": "https://www.elkjop.no/product/pc-datautstyr-og-kontor/pc/stasjonar-pc/"
+           "lenovo-legion-tower-5-gen-10-r7-7700x161tb5070-stasjonar-gaming-pc/913588",
+    "price": 18990, "rating": None, "reviews": None,
+    "specs": {
+        "Internminne/RAM (GB)": "16", "Total lagringskapasitet (GB)": "1000", "Grafikkløsning (Modell)": "GeForce RTX 5070",
+        "WiFi-standard": "Wi-Fi 6E (802.11ax)", "Nummer": "7700X", "Operativsystem versjon": "Windows 11 Home",
+        "RAM-type": "DDR5", "Maksimalt støttet minne (GB)": "32", "Arkitektur grafikkort": "Dedikert",
+        "Hovedmerke (GPU)": "NVIDIA", "Dedikert videominne": "12", "Produkttype": "Stasjonær gaming-PC",
+        "Lanseringsår": "2025", "Wi-Fi": "Ja", "Bluetooth": "Ja", "Produsent CPU": "AMD",
+        "Prosessortype": "AMD Ryzen 7", "Antall prosessorkjerner": "8", "Maksimal hastighet (GHz)": "5.4",
+        "Type avkjøling": "CPU luftkjøling (vifte)", "Vekt (kg)": "15",
+    },
+    "description": "",
+}
+
+LG_B5_TV = {
+    "name": 'LG 65" B5 4K OLED TV (2025)',
+    "url": "https://www.elkjop.no/product/tv-lyd-og-smarte-hjem/tv-og-tilbehor/tv/lg-65-b5-4k-oled-tv-2025/912293",
+    "price": 16990, "rating": None, "reviews": None,
+    "specs": {
+        "Smart-TV-plattform": "webOS", "Størrelse (tommer)": "65", "Lanseringsår": "2025", "Produkttype": "TV",
+        "Panelteknologi": "OLED", "Oppløsning": "4K (2160p)", "Bildepanelfrekvens (Hz)": "120",
+        "High Dynamic Range (HDR) standard": "Dolby Vision", "Fargegjengivelse (score)": "9", "Kontrast score": "10",
+        "Panelscore": "8", "Lysstyrke score": "4.2", "Antall HDMI-innganger": "3", "HDMI-standard": "HDMI 2.1",
+        "Variable Refresh Rate (VRR)": "Ja", "Auto Low Latency Mode (ALLM)": "Ja",
+        "eArc (enhanced Audio Return Channel)": "Ja", "Lydeffekt (watt)": "20", "Energiklasse": "F",
+    },
+    "description": "Dolby Vision & Dolby Atmos.",
+}
+
+ASKO_W3096 = {
+    "name": "ASKO Vaskemaskin W3096RW (9kg)",
+    "url": "https://www.elkjop.no/product/hvitevarer/vask-og-tork/vaskemaskin/asko-vaskemaskin-w3096rw-9kg/1020574",
+    "price": 12990, "rating": None, "reviews": None,
+    "specs": {
+        "Sentrifuge": "1600 o/min", "Type vaskemaskin": "Frontmatet", "Energiklasse": "A",
+        "Kapasitet vaskesyklus (kg)": "9", "Luftbåren akustisk lydutslipp sentrifugeringsfase (dB)": "70",
+        "Luftbåren akustisk lydutslipp-klasse sentrifugeringsfase": "A", "Trommelvolum (I)": "60",
+        "Sentrifugehastighet (o/min)": "1600", "Wi-Fi": "Ja", "Produkttype": "Vaskemaskin",
+        "Vektet vannforbruk vaskesyklus (liter/syklus)": "35",
+    },
+    "description": "Auto Dose med to avtakbare tanker. Damprensprogram.",
+}
+
+SONY_XM6 = {
+    "name": "Sony WH-1000XM6 trådløse around-ear hodetelefoner (sand pink)",
+    "url": "https://www.elkjop.no/product/tv-lyd-og-smarte-hjem/hodetelefoner-og-tilbehor/hodetelefoner/"
+           "sony-wh-1000xm6-tradlose-around-ear-hodetelefoner-sand-pink/1039377",
+    "price": 4990, "rating": None, "reviews": None,
+    "specs": {
+        "Tilkobling": "Bluetooth", "Audio-støtte": "Hi-Res Audio", "Type hodetelefoner": "Around-ear",
+        "Vannresistent": "Nei", "Mikrofon": "Ja", "Vekt (g)": "254", "Taletid (timer)": "28",
+        "Musikkavspillingstid med ANC på (timer)": "30", "Musikkavspillingstid (timer)": "40",
+        "Batteritid - stand by (timer)": "Up to 7 days", "Ladetid (timer)": "3.5", "Bluetooth-standard": "Bluetooth 5.3",
+        "Bluetooth lydkodek": "SBC", "Produkttype": "Hodetelefoner", "Aktiv støykansellering": "Ja",
+    },
+    "description": "Multipoint Connection lar deg koble til to enheter samtidig.",
+}
+
+LG_DRYER = {
+    "name": "LG tørketrommel RV9DN902B",
+    "url": "https://www.elkjop.no/product/hvitevarer/vask-og-tork/torketrommel-og-torkeskap/torketrommel/lg-torketrommel-rv9dn902b/155021",
+    "price": 9990, "rating": None, "reviews": None,
+    "specs": {
+        "Varmepumpeteknologi": "Ja", "Dampfunksjon": "Nei", "Wi-Fi": "Ja", "Energiklasse": "A+++",
+        "Lydnivå tørk (dB)": "62", "Tørkekapasitet (kg)": "9", "Produkttype": "Tørketrommel",
+        "Type tørketrommel": "Kondens", "Tørkesystem": "Sensor", "Kan kobles til avløp": "Ja", "Forbruk, kWh/år": "194",
+    },
+    "description": "",
+}
+
+MELITTA_SOLO = {
+    "name": "Melitta Caffeo Solo & Perfect Milk kaffemaskin 20812",
+    "url": "https://www.elkjop.no/product/hjem-rengjoring-og-kjokkenutstyr/kaffe-og-te/kaffemaskin-og-espressomaskin/"
+           "melitta-caffeo-solo-perfect-milk-kaffemaskin-20812/MEL20812",
+    "price": 5490, "rating": None, "reviews": None,
+    "specs": {
+        "Skumgenerator": "Ja", "Renseindikator": "Ja", "Automatisk melkefunksjon": "Ja", "Vannbeholder (I)": "1.2",
+        "Pumpetrykk (Bar)": "15", "Produkttype": "Kaffemaskin", "Betjening": "Automatisk",
+        "Integrert kaffekvern": "Ja", "Antall kvernegrader": "5", "Kalkindikator": "Ja", "Rengjøringsprogram": "Ja",
+        "Effekt (Watt)": "1400", "Wi-Fi": "Nei",
+    },
+    "description": "15 bar trykk, dobbelkopp-funksjon og Auto-Cappuccinatore.",
+}

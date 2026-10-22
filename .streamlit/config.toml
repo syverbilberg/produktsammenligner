@@ -2,8 +2,8 @@
 base = "light"
 primaryColor = "#00733e"
 backgroundColor = "#f5f6f9"
-secondaryBackgroundColor = "#f7f8fb"
-textColor = "#14152b"
+secondaryBackgroundColor = "#f7f8fa"
+textColor = "#15172b"
 font = "sans serif"
 
 [client]

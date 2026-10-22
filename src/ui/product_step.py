@@ -63,7 +63,7 @@ def render() -> None:
         with head:
             card_title("box", "Produktene som skal sammenlignes")
         with reset_col:
-            st.button("↺ Ny", on_click=state.reset, use_container_width=True)
+            st.button("↺ Ny", on_click=state.reset, width="stretch")
 
         for index in range(count):
             field, remove = st.columns([10, 1], vertical_alignment="bottom")
@@ -79,13 +79,13 @@ def render() -> None:
 
         if count < state.MAX_PRODUCTS:
             with st.container(key="add_product"):
-                st.button("+ Legg til produkt", on_click=state.add_product, use_container_width=True)
+                st.button("+ Legg til produkt", on_click=state.add_product, width="stretch")
 
     for error in st.session_state.fetch_errors:
         st.error(error)
 
     if not st.session_state.products:
-        if st.button("Hent produkter →", type="primary", use_container_width=True):
+        if st.button("Hent produkter →", type="primary", width="stretch"):
             with st.spinner("Henter produktene fra Elkjøp …"):
                 _fetch_all()
             st.rerun()

@@ -38,7 +38,15 @@ EXTRACTORS: dict[str, list[tuple[str, str, str]]] = {
         (TEXT, r"\b(?P<v>\d{2,4}\s*(?:gb|tb))\s*(?:intern\w*\s*)?(?:lagring\w*|ssd)", "{v}"),
         (TEXT, r"lagring\w*\s*(?:på|:)?\s*(?P<v>\d{2,4}\s*(?:gb|tb))", "{v}"),
     ],
+    "gpu": [
+        (NAME, r"/(?:rtx\s?)?(?P<v>[2-5]0[5-9]0(?:\s?ti)?)\b", "RTX {v}"),
+        (TEXT, r"(?P<v>(?:geforce\s)?rtx\s?[2-5]0[5-9]0(?:\s?ti)?(?:\s?super)?|radeon\s?rx\s?\d{4}\s?(?:xtx|xt)?|arc\s?[ab]\d{3})", "{v}"),
+    ],
+    "vram": [
+        (TEXT, r"(?P<v>\d{1,2})\s*gb\s*(?:gddr\d\w*|vram|grafikkminne)", "{v} GB"),
+    ],
     "processor": [
+        (NAME, r"\b(?P<v>(?:i[3579]|r[3579]|u[579]|core\s?[357]|ultra\s?[579])-[\w]{2,8})(?=/)", "{v}"),
         (TEXT, r"(?P<v>snapdragon\s+(?:x\s+)?(?:\d\s*(?:gen\s*\d|elite|\+)?[\w ]{0,15}?)(?=[-\s,.|]|$)"
                r"|exynos\s+\d{3,4}|dimensity\s+\d{3,4}|tensor\s+g\d|a\d{2}\s+(?:pro|bionic)"
                r"|apple\s+m\d(?:\s+(?:pro|max|ultra))?|intel\s+core\s+(?:ultra\s+)?[\w-]{2,12}"
@@ -179,7 +187,12 @@ EXTRACTORS: dict[str, list[tuple[str, str, str]]] = {
     "zero_zone": [(TEXT, r"(?P<v>nullsone|0 ?°c-sone|vitafresh|freshzone)", "Ja")],
     "ice_crush": [(TEXT, r"(?P<v>knuser is|isknus\w*)", "Ja")],
     "auto_open": [(TEXT, r"(?P<v>automatisk døråpning|autoopen|døren åpnes automatisk)", "Ja")],
-    "steam": [(TEXT, r"(?P<v>dampfunksjon|dampprogram|damp\w* (?:assist|stek|vask))", "Ja")],
+    "steam": [(TEXT, r"(?P<v>dampfunksjon|dampprogram|damprens\w*|damp\w* (?:assist|stek|vask))", "Ja")],
+    "auto_dose": [(TEXT, r"(?P<v>auto ?dose|automatisk dosering|autodosering|twindos|i-?dos)", "Ja")],
+    "multipoint": [(TEXT, r"(?P<v>multipoint|flerpunkt|koble til to enheter)", "Ja")],
+    "brew_group": [(TEXT, r"(?P<v>avtakbar bryggeenhet|uttakbar bryggeenhet|bryggeenheten kan tas ut)", "Ja")],
+    "heat_pump": [(TEXT, r"(?P<v>varmepumpe)", "Ja")],
+    "vrr": [(TEXT, r"(?P<v>\bvrr\b|variable refresh rate)", "Ja")],
     "power_w": [
         (NAME, r"\b(?P<v>\d{3,4})\s*w\b", "{v} W"),
     ],

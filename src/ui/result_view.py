@@ -121,4 +121,4 @@ def render() -> None:
         else:
             st.write("Fant ingen av de viktige spesifikasjonene på produktsidene.")
         with st.expander("Alle spesifikasjoner fra Elkjøp"):
-            st.dataframe(_all_specs_frame(result.products), use_container_width=True)
+            st.dataframe(_all_specs_frame(result.products), width="stretch")

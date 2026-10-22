@@ -47,7 +47,7 @@ def render() -> None:
             card_title("sliders", "Hva er viktigst for kunden?")
         with toggle_col:
             st.button("Skjul" if st.session_state.priorities_open else "Endre", key="toggle_priorities",
-                      on_click=_toggle, use_container_width=True)
+                      on_click=_toggle, width="stretch")
 
         chips([(dim, levels.get(dim, d.DEFAULT_LEVEL)) for dim in dimensions], off_values=("Ikke viktig",))
 
@@ -60,5 +60,11 @@ def render() -> None:
                 )
                 levels[dim] = choice or d.DEFAULT_LEVEL
 
-    st.button("Gi anbefaling →", type="primary", use_container_width=True,
-              on_click=_run_comparison, args=(dimensions,))
+    if st.session_state.result is None:
+        # First time: one clear button. Afterwards only "Endre" is shown.
+        st.button("Gi anbefaling →", type="primary", width="stretch",
+                  on_click=_run_comparison, args=(dimensions,))
+    else:
+        # The recommendation follows the levels live, so "Endre" + a new
+        # choice updates it at once without pressing anything else.
+        st.session_state.result = compare(products, state.weights(dimensions))

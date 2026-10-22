@@ -3,18 +3,19 @@ from __future__ import annotations
 
 import re
 
-_FOLD = str.maketrans({"æ": "ae", "ø": "o", "å": "a", "Æ": "AE", "Ø": "O", "Å": "A"})
+# Elkjøp URLs write "bærbar" as "barbar" and "stasjonær" as "stasjonar": æ → a.
+_FOLD = str.maketrans({"æ": "a", "ø": "o", "å": "a", "Æ": "A", "Ø": "O", "Å": "A"})
 
 
 def fold(text: str) -> str:
-    """Lowercase and write æøå the way Elkjøp URLs do: 'Kjøkkenmaskin' → 'kjokkenmaskin'."""
+    """Lowercase and write æøå the way Elkjøp URLs do: 'Kjøkkenmaskin' → 'kjokkenmaskin', 'bærbar' → 'barbar'."""
     return (text or "").lower().translate(_FOLD)
 
 
 _UNIT_ALIASES = {
     "watt": "W", "w": "W", "itr": "liter", "ltr": "liter", "l": "liter", "tommer": '"', "gb": "GB", "tb": "TB",
     "minutter": "min", "minutt": "min", "min": "min", "timer": "timer", "t": "timer", "mah": "mAh", "pa": "Pa",
-    "db": "dB", "ml": "ml", "kg": "kg", "g": "g", "cm": "cm", "mm": "mm", "hz": "Hz", "wh": "Wh",
+    "db": "dB", "ml": "ml", "i": "liter", "kg": "kg", "g": "g", "cm": "cm", "mm": "mm", "hz": "Hz", "wh": "Wh",
 }
 
 

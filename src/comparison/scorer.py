@@ -6,6 +6,7 @@ import numpy as np
 from src.categories import dimensions as d
 from src.comparison.value_parser import (parse_energy_class, parse_max_number, parse_number,
                                          parse_rank, parse_yes)
+from src.comparison.hardware import MARGIN, cpu_score, gpu_score
 from src.models import Product, SpecRow, SpecRule
 
 PRICE_WEIGHT_FACTOR = 2   # a big price gap counts like two spec wins
@@ -20,6 +21,10 @@ def to_number(rule: SpecRule, value: str | None) -> float:
         return parse_yes(value)
     if rule.kind == "rank":
         return parse_rank(value, rule.order)
+    if rule.kind == "cpu":
+        return cpu_score(value)
+    if rule.kind == "gpu":
+        return gpu_score(value)
     if rule.aggregate == "max":
         return parse_max_number(value)
     return parse_number(value)
@@ -40,6 +45,11 @@ def pick_winner(rule: SpecRule, values: tuple[str | None, ...]) -> int | None:
     if rule.kind == "info":
         return None
     numbers = [to_number(rule, v) for v in values]
+    if rule.kind in MARGIN:
+        # Approximate rankings: only a clear gap counts, near-equal chips are "Likt".
+        known = sorted((n for n in numbers if not np.isnan(n)), reverse=True)
+        if len(known) < 2 or known[0] - known[1] < MARGIN[rule.kind]:
+            return None
     return _unique_best(numbers, lower_is_better=rule.kind in ("lower", "energy", "rank"))
 
 
