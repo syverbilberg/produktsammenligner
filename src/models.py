@@ -21,6 +21,8 @@ class Product:
         specs: Spec label -> value, exactly as written on the page.
         description: Product description text (used when a spec is missing
             from the spec table but mentioned in the text).
+        category_id: Category chosen when the product was fetched inside a tab
+            (e.g. "vacuum" in the SDA tab). Empty = detect from the page.
     """
 
     sku: str
@@ -34,6 +36,7 @@ class Product:
     category_path: str = ""
     specs: dict[str, str] = field(default_factory=dict)
     description: str = ""
+    category_id: str = ""
 
 
 @dataclass(frozen=True)

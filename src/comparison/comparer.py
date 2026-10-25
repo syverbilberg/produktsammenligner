@@ -8,6 +8,7 @@ from src.categories import dimensions as d
 from src.categories.guide import CHARGER, GENERATION
 from src.comparison import summarizer
 from src.comparison import fallback_extractor
+from src.comparison.model_facts import MODEL_SOURCE, fact
 from src.comparison.generation import model_generations
 from src.comparison.scorer import pick_winner, score
 from src.comparison.value_parser import parse_max_number
@@ -16,7 +17,8 @@ from src.models import Category, ComparisonResult, Product, SpecRow, SpecRule
 
 
 def value_for(product: Product, rule: SpecRule, used: set[str]) -> tuple[str | None, str]:
-    """Spec table first; if missing there, the product name, then the description.
+    """Spec table first; then the product name and description (Elkjøp's own text about this exact
+    product); last the manufacturer's model overview (src/comparison/model_facts.py).
 
     For max-type rules (e.g. charging watt) every source is read and the
     highest number wins, so "10 W" in the table never hides "45 W" in the text.
@@ -30,7 +32,11 @@ def value_for(product: Product, rule: SpecRule, used: set[str]) -> tuple[str | N
         return max(candidates, key=lambda pair: parse_max_number(pair[0]))
     if value is not None:
         return value, ""
-    return fallback_extractor.extract(product, rule.key)
+    found = fallback_extractor.extract(product, rule.key)
+    if found[0] is not None:
+        return found
+    known = fact(product, rule.key)            # manufacturer's model overview (toothbrushes, phone chips)
+    return (known, MODEL_SOURCE) if known is not None else (None, "")
 
 
 def _names_have_generations(categories: list[Category | None]) -> bool:

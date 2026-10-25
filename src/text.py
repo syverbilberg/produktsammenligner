@@ -65,4 +65,5 @@ def display(value: str | None, label: str, missing: str = "ikke oppgitt") -> str
     """Value as the customer sees it: ('5.5', 'Bollevolum (liter)') → '5,5 liter'."""
     if value is None:
         return missing
+    value = re.sub(r"\b(\d+)\s*years?\b", r"\1 år", value)      # "7 years" (Pixel) → "7 år"
     return decimal_comma(with_unit(value, label))

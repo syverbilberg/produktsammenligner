@@ -21,7 +21,10 @@ _DEFAULTS = {
     "priorities_open": True,   # priority card expanded?
     "result": None,            # ComparisonResult
     "side_by_side": False,     # customer chose "Vis likevel side om side" for unrelated products
+    "wrong_tab": None,         # group id suggested when a product belongs to another tab
 }
+
+DEFAULT_GROUP = "mda"
 
 
 def input_key(index: int) -> str:
@@ -33,10 +36,24 @@ def init() -> None:
     """Create missing keys with defaults."""
     for key, value in _DEFAULTS.items():
         st.session_state.setdefault(key, value.copy() if isinstance(value, (list, dict)) else value)
+    st.session_state.setdefault("group", DEFAULT_GROUP)
+
+
+def set_group(group_id: str, keep_inputs: bool = False) -> None:
+    """Open another tab. Normally starts over; `keep_inputs` keeps what is typed
+    (used by "Bytt til fanen …" so the customer does not have to retype)."""
+    typed = {k: v for k, v in st.session_state.items() if str(k).startswith("input_")} if keep_inputs else {}
+    count = st.session_state.get("count", MIN_PRODUCTS)
+    reset()
+    st.session_state.group = group_id
+    if keep_inputs:
+        st.session_state.count = count
+        for key, value in typed.items():
+            st.session_state[key] = value
 
 
 def reset() -> None:
-    """Start a new comparison ("↺ Ny")."""
+    """Start a new comparison ("↺ Ny"). The open tab is kept."""
     for key, value in _DEFAULTS.items():
         st.session_state[key] = value.copy() if isinstance(value, (list, dict)) else value
     for key in [k for k in st.session_state if str(k).startswith(("input_", "level_"))]:

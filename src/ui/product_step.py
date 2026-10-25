@@ -9,7 +9,9 @@ from src.categories import detect_category
 from src.comparison import kr
 from src.fetching import FetchError, InputError, fetch_product
 from src.models import Product
-from src.ui import state
+from src.categories.compatibility import SINGULAR
+from src.categories.groups import BY_ID as GROUPS, place
+from src.ui import group_tabs, state
 from src.ui.components import card_title, html
 
 LETTERS = "ABCD"
@@ -46,11 +48,28 @@ def _fetch_all() -> None:
             products.append(_cached_fetch(text))
         except (InputError, FetchError) as err:
             errors.append(f"Produkt {letter}: {err}")
+    group = group_tabs.current()
+    st.session_state.wrong_tab = None
+    for letter, product in zip(LETTERS, products):
+        placement = place(product, group)
+        if placement.wrong_tab:
+            kind = SINGULAR.get(placement.actual.id, placement.actual.name.lower())
+            errors.append(f"Produkt {letter} ser ut som {kind}, som ligger under fanen «{placement.wrong_tab.name}» "
+                          f"– ikke «{group.name}».")
+            st.session_state.wrong_tab = st.session_state.wrong_tab or placement.wrong_tab.id
+        else:
+            product.category_id = placement.category.id if placement.category else ""
     st.session_state.fetch_errors = errors
     if not errors:
         st.session_state.products = products
         st.session_state.fetched_for = inputs
         st.session_state.result = None
+
+
+def _switch_and_fetch(group_id: str) -> None:
+    """Open the suggested tab, keep what is typed, and fetch again."""
+    state.set_group(group_id, keep_inputs=True)
+    _fetch_all()
 
 
 def render() -> None:
@@ -69,7 +88,7 @@ def render() -> None:
             field, remove = st.columns([10, 1], vertical_alignment="bottom")
             with field:
                 st.text_input(f"Produkt {LETTERS[index]}", key=state.input_key(index),
-                              placeholder="Varekode (f.eks. 457340) eller lenke til elkjop.no")
+                              placeholder=f"Varekode eller lenke – {group_tabs.current().name}")
             with remove:
                 if count > state.MIN_PRODUCTS:
                     st.button("✕", key=f"remove_{index}", help="Fjern produktet",
@@ -83,6 +102,10 @@ def render() -> None:
 
     for error in st.session_state.fetch_errors:
         st.error(error)
+    suggested = st.session_state.get("wrong_tab")
+    if suggested:
+        st.button(f"Bytt til fanen «{GROUPS[suggested].name}» og hent på nytt", key="switch_tab", width="stretch",
+                  on_click=_switch_and_fetch, args=(suggested,))
 
     if not st.session_state.products:
         if st.button("Hent produkter →", type="primary", width="stretch"):

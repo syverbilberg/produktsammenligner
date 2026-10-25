@@ -43,12 +43,22 @@ def related(a: Category, b: Category) -> bool:
 SINGULAR: dict[str, str] = {
     "mobile": "en mobiltelefon", "tablet": "et nettbrett", "watch": "en smartklokke",
     "headphones": "hodetelefoner", "laptop": "en bærbar PC", "desktop": "en stasjonær PC",
-    "monitor": "en PC-skjerm", "printer": "en skriver", "tv": "en TV", "soundbar": "en lydplanke/høyttaler",
-    "gaming": "gamingutstyr", "camera": "et kamera", "fridge": "et kjøleskap/fryser",
-    "oven": "en stekeovn/platetopp", "washer": "en vaskemaskin", "dryer": "en tørketrommel",
+    "monitor": "en PC-skjerm", "printer": "en skriver", "tv": "en TV", "soundbar": "en lydplanke",
+    "camera": "et kamera", "fridge": "et kjøleskap/fryser",
+    "oven": "en stekeovn/komfyr", "washer": "en vaskemaskin", "dryer": "en tørketrommel",
     "dishwasher": "en oppvaskmaskin", "vacuum": "en støvsuger", "coffee": "en kaffemaskin",
     "kitchen_machine": "en kjøkkenmaskin", "airfryer": "en airfryer", "blender": "en blender",
-    "kitchen": "et kjøkkenapparat", "personal": "et produkt for personlig pleie", "emobility": "et elkjøretøy",
+    "kitchen": "et kjøkkenapparat", "emobility": "et elkjøretøy",
+    "speaker": "en høyttaler", "projector": "en projektor", "storage": "en lagringsenhet", "mouse": "en mus",
+    "keyboard": "et tastatur", "router": "en ruter", "pc_speaker": "PC-høyttalere", "console": "en spillkonsoll",
+    "controller": "en spillkontroller", "racing": "et ratt/joystick", "streaming_gear": "strømmeutstyr",
+    "component": "en PC-komponent", "american_fridge": "et amerikanerskap", "wine_fridge": "et vinskap",
+    "hob": "en platetopp", "microwave": "en mikrobølgeovn", "hood": "en kjøkkenvifte",
+    "washer_dryer": "en kombinert vaskemaskin/tørketrommel", "stick_mixer": "en stavmikser", "sandwich": "en sandwichgrill/vaffeljern",
+    "soda": "en kullsyremaskin", "capsule": "en kapselmaskin", "filter_coffee": "en kaffetrakter", "grinder": "en kaffekvern",
+    "toothbrush": "en elektrisk tannbørste", "shaver": "en barbermaskin/trimmer", "hair": "en hårføner/styler",
+    "ipl": "en IPL/epilator", "scale": "en badevekt", "robot_vacuum": "en robotstøvsuger", "air_purifier": "en luftrenser",
+    "dehumidifier": "en avfukter", "fan": "en vifte", "heater": "en panelovn/varmeovn", "air_conditioner": "en aircondition",
 }
 
 

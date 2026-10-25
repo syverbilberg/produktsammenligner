@@ -33,7 +33,7 @@ def test_unrelated_products_are_never_compared():
 
 def test_side_by_side_overview_uses_each_products_own_category():
     phone, robot = build_overview([build(pages.S26), build(pages.DREAME_X60_PRO)])
-    assert phone.category_name == "Mobiltelefoner" and robot.category_name == "Støvsugere og robotstøvsugere"
+    assert phone.category_name == "Mobiltelefoner" and robot.category_name == "Robotstøvsugere"
     assert ("Batterikapasitet", "4300 mAh") in phone.specs
     assert ("Sugeeffekt", "42000 Pa") in robot.specs
     assert "Moppefunksjon" in robot.features and "Trådløs lading" in phone.features

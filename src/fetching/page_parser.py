@@ -17,7 +17,8 @@ from bs4 import BeautifulSoup
 from src.models import Product
 
 # Labels that never help a buyer (packaging, ids, registry numbers).
-_IGNORED_LABEL_WORDS = ("emballasje", "ean", "eprel", "artikkelnummer", "varenummer")
+# Matched as whole words: "ean" must not hit "Clean Air Delivery Rate".
+_IGNORED_LABEL_WORDS = re.compile(r"\b(emballasje|ean|eprel|artikkelnummer|varenummer)\b")
 
 _LABEL_KEYS = ("label", "name", "key", "title", "attributeName", "displayName")
 _VALUE_KEYS = ("value", "displayValue", "attributeValue", "values", "formattedValue")
@@ -31,7 +32,7 @@ def _clean(text: str) -> str:
 def _usable_label(label: str) -> bool:
     """Skip empty, absurdly long or useless labels."""
     lower = label.lower()
-    return 0 < len(label) <= 90 and not any(word in lower for word in _IGNORED_LABEL_WORDS)
+    return 0 < len(label) <= 90 and not _IGNORED_LABEL_WORDS.search(lower)
 
 
 def _add_spec(specs: dict[str, str], label: str, value: str) -> None:

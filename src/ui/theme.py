@@ -30,6 +30,21 @@ html, body, .stApp { background: var(--page); color: var(--text); font-family: '
 .ps-title { font-size: 1.45rem; font-weight: 700; line-height: 1.2; }
 .ps-subtitle { font-size: .98rem; opacity: .72; margin-top: 2px; }
 
+/* ---------- product-group tabs ---------- */
+div.st-key-group_tabs { margin: -8px 0 4px; }
+div.st-key-group_tabs .stButton button {
+  min-height: 46px !important; border-radius: 12px !important; font-weight: 700 !important; font-size: 1rem !important;
+  background: var(--card) !important; color: var(--text) !important; border: 1px solid var(--line) !important;
+  box-shadow: none !important;
+}
+div.st-key-group_tabs .stButton button p { font-size: 1rem !important; font-weight: 700 !important; }
+div.st-key-group_tabs .stButton button[kind="primary"], div.st-key-group_tabs .stButton button:disabled {
+  background: var(--navy) !important; color: #fff !important; border-color: var(--navy) !important; opacity: 1 !important;
+}
+div.st-key-group_tabs .stButton button:disabled p { color: #fff !important; }
+div.st-key-group_tabs .stButton button:hover:not(:disabled) { border-color: var(--navy) !important; }
+.ps-group-hint { color: var(--muted); font-size: .92rem; margin: 2px 2px 14px; }
+
 /* ---------- cards ---------- */
 div[class*="st-key-card"] {
   background: var(--card); border: 1px solid var(--line) !important; border-radius: 18px !important;

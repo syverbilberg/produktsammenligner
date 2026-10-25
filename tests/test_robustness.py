@@ -19,10 +19,11 @@ from src.fetching.url_resolver import category_from_url, sku_from_url
 from src.models import Product
 from src.text import fold
 from tests import real_pages as pages
+from tests import real_pages_v9 as v9
 
 ALL_PAGES = [pages.S26, pages.S25, pages.HP_LAPTOP, pages.BOSCH_MUMS6, pages.KENWOOD_KVL85, pages.ASKO_DISHWASHER,
              pages.ROBOROCK_SAROS20S, pages.DREAME_X60_PRO, pages.PCS_PRIME400, pages.LEGION_TOWER5,
-             pages.LG_B5_TV, pages.ASKO_W3096, pages.SONY_XM6, pages.LG_DRYER, pages.MELITTA_SOLO]
+             pages.LG_B5_TV, pages.ASKO_W3096, pages.SONY_XM6, pages.LG_DRYER, pages.MELITTA_SOLO, *v9.ALL_V9]
 
 
 def build(page: dict) -> Product:
@@ -114,8 +115,8 @@ def test_every_category_is_reachable_from_its_url(category):
 
 @pytest.mark.parametrize("page", ALL_PAGES, ids=lambda p: p["name"][:30])
 def test_real_pages_get_the_right_category(page):
-    expected = {"Mobiltelefon": "mobile", "Bærbar PC": "laptop", "Kjøkkenmaskin": "kitchen_machine",
-                "Oppvaskmaskin": "dishwasher", "Robotstøvsuger": "vacuum", "Stasjonær gaming-PC": "desktop",
+    expected = page.get("expect") or {"Mobiltelefon": "mobile", "Bærbar PC": "laptop", "Kjøkkenmaskin": "kitchen_machine",
+                "Oppvaskmaskin": "dishwasher", "Robotstøvsuger": "robot_vacuum", "Stasjonær gaming-PC": "desktop",
                 "TV": "tv", "Vaskemaskin": "washer", "Hodetelefoner": "headphones", "Tørketrommel": "dryer",
                 "Kaffemaskin": "coffee"}[page["specs"]["Produkttype"]]
     assert detect_category(build(page)).id == expected
@@ -175,7 +176,7 @@ def test_robot_vacuum_comparison_and_tab():
     rows = {row.rule.key: row for row in build_rows(products)[0]}
     assert rows["auto_empty"].winner == 1                            # included vs. "med tilbehør"
     assert rows["water_tank"].winner == 1                            # 4,2 l vs 4,0 l (ml compared as liter)
-    assert rows["dust"].winner is None                               # robot bin vs dock bag – not comparable
+    assert rows["robot_dust"].winner is None                               # robot bin vs dock bag – not comparable
     ins = build_insights(products)
     floor = next(r for r in ins.scenarios if r.scenario.title == "Gulvvask")
     assert not any("ingen oppgir" in fact for fact in floor.reasons)
@@ -238,7 +239,7 @@ def test_tv_real_labels():
 def test_washer_real_labels():
     v = values(pages.ASKO_W3096)
     assert v["capacity_kg"][0] == "9 kg" and v["spin"][0] in ("1600 o/min", "1600")
-    assert v["noise"][0] == "70 dB"                                          # "Luftbåren akustisk lydutslipp …"
+    assert "noise" not in v and v["spin"][0] in ("1600 o/min", "1600")       # the customer wants rpm, not dB
     assert v["water"][0] == "35 liter/syklus"
     assert v["auto_dose"] == ("Ja", "beskrivelsen") and v["steam"] == ("Ja", "beskrivelsen")
 
