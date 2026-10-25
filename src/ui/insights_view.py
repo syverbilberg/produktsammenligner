@@ -26,7 +26,7 @@ def _bold(text: str) -> str:
 def _empty() -> None:
     with st.container(key="card_insights_empty"):
         html('<div class="ps-empty"><div class="big">Ingen produkter ennå</div>'
-             "Legg inn produktene i fanen <b>Anbefaling</b> og trykk «Hent produkter». "
+             "Legg inn produktene over og trykk «Hent produkter». "
              "Her ser du så funksjoner, bruksområder og fordeler/ulemper – uten å svare på prioriteringer.</div>")
 
 

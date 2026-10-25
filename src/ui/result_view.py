@@ -94,7 +94,7 @@ def render() -> None:
         else:
             with st.container(key="card_empty_mismatch"):
                 html('<div class="ps-empty"><div class="big">Ulike produkttyper</div>'
-                     "Velg til høyre om du vil bytte produkt eller se dem side om side.</div>")
+                     "Velg om du vil bytte produkt eller se dem side om side.</div>")
         return
     result: ComparisonResult | None = st.session_state.result
     if result is None:

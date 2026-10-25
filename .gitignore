@@ -5,3 +5,4 @@ __pycache__/
 debug/
 .streamlit/secrets.toml
 .vscode/
+*.venv/

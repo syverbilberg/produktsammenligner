@@ -1,4 +1,6 @@
-"""Step 1: the customer enters 2–4 varekoder or links and we fetch them."""
+"""Step 1: the customer enters 2–4 varekoder or links and we fetch them.
+
+Shown above the «Funksjoner og bruk» / «Anbefaling» tabs, so both use the same products."""
 from __future__ import annotations
 
 from html import escape
@@ -84,17 +86,19 @@ def render() -> None:
         with reset_col:
             st.button("↺ Ny", on_click=state.reset, width="stretch")
 
-        for index in range(count):
-            field, remove = st.columns([10, 1], vertical_alignment="bottom")
-            with field:
-                st.text_input(f"Produkt {LETTERS[index]}", key=state.input_key(index),
-                              placeholder=f"Varekode eller lenke – {group_tabs.current().name}")
-            with remove:
-                if count > state.MIN_PRODUCTS:
-                    st.button("✕", key=f"remove_{index}", help="Fjern produktet",
-                              on_click=state.remove_product, args=(index,))
-            if products and index < len(products):
-                _tile(products[index])
+        # The products side by side (they stack on a phone).
+        for index, column in enumerate(st.columns(count, gap="medium")):
+            with column:
+                field, remove = st.columns([10, 1.4], vertical_alignment="bottom")
+                with field:
+                    st.text_input(f"Produkt {LETTERS[index]}", key=state.input_key(index),
+                                  placeholder="Varekode eller lenke")
+                with remove:
+                    if count > state.MIN_PRODUCTS:
+                        st.button("✕", key=f"remove_{index}", help="Fjern produktet",
+                                  on_click=state.remove_product, args=(index,))
+                if products and index < len(products):
+                    _tile(products[index])
 
         if count < state.MAX_PRODUCTS:
             with st.container(key="add_product"):

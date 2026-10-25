@@ -1,7 +1,8 @@
 """Session state: what has been fetched and decided so far.
 
 Flow: inputs → fetched products → priorities → result. Changing an input
-after fetching clears everything downstream.
+after fetching clears everything downstream. Each product-group tab (MDA,
+Mobil …) keeps its own copy, see set_group.
 """
 from __future__ import annotations
 
@@ -39,17 +40,39 @@ def init() -> None:
     st.session_state.setdefault("group", DEFAULT_GROUP)
 
 
+# Keys saved per tab: everything in _DEFAULTS plus the typed varekoder.
+# Priority widgets (level_*) are not saved – their choices live in "levels".
+def _snapshot() -> dict:
+    """The open tab's comparison, so it can be restored later."""
+    saved = {key: st.session_state.get(key) for key in _DEFAULTS}
+    saved.update({k: v for k, v in st.session_state.items() if str(k).startswith("input_")})
+    return saved
+
+
 def set_group(group_id: str, keep_inputs: bool = False) -> None:
-    """Open another tab. Normally starts over; `keep_inputs` keeps what is typed
-    (used by "Bytt til fanen …" so the customer does not have to retype)."""
-    typed = {k: v for k, v in st.session_state.items() if str(k).startswith("input_")} if keep_inputs else {}
-    count = st.session_state.get("count", MIN_PRODUCTS)
+    """Open another tab.
+
+    Each tab keeps its own comparison: what was typed, fetched and chosen in
+    MDA is still there after looking at Mobil. `keep_inputs` is for
+    "Bytt til fanen …": the typed varekoder move to the new tab and the old
+    tab starts empty, since they did not belong there.
+    """
+    current = st.session_state.get("group", DEFAULT_GROUP)
+    if group_id == current:
+        return
+    store = st.session_state.setdefault("saved_groups", {})
+    snapshot = _snapshot()
+    if keep_inputs:
+        store.pop(current, None)
+        target = {k: v for k, v in snapshot.items() if k.startswith("input_")}
+        target["count"] = snapshot.get("count", MIN_PRODUCTS)
+    else:
+        store[current] = snapshot
+        target = store.pop(group_id, {})
     reset()
     st.session_state.group = group_id
-    if keep_inputs:
-        st.session_state.count = count
-        for key, value in typed.items():
-            st.session_state[key] = value
+    for key, value in target.items():
+        st.session_state[key] = value
 
 
 def reset() -> None:
