@@ -35,7 +35,7 @@ def pros_and_cons(products: list[Product], names: list[str], rows: list[SpecRow]
     for row in rows:
         for holder in mentioned_only_by(row):
             pros[holder].append(f"{has_feature(row.rule, True)} (nevnt bare for {names[holder]})")
-        only = stated_only_by(row)
+        only = stated_only_by(row) if row.rule.kind != "info" else None   # "Plassering: Integrert" is not an advantage
         if only is not None:
             missing = " og ".join(names[i] for i, v in enumerate(row.values) if v is None)
             pros[only].append(f"{name_of(row.rule)}: {shown(row.rule, row.values[only])} (ikke oppgitt for {missing})")
@@ -47,8 +47,9 @@ def pros_and_cons(products: list[Product], names: list[str], rows: list[SpecRow]
             elif row.values[i] is not None:
                 cons[i].append(loss_phrase(row, i, names))
 
+    guide_labels = {row.rule.label for row in rows}
     for feature in features:
-        if feature.source or not feature.differs:
+        if feature.label in guide_labels or not feature.differs:
             continue  # guide rows are already covered above; only page-only extras here
         for i, value in enumerate(feature.values):
             if value is True and any(v is False for v in feature.values):
@@ -63,7 +64,12 @@ def pros_and_cons(products: list[Product], names: list[str], rows: list[SpecRow]
             elif product.rating < _WEAK_RATING:
                 cons[i].append(f"Svakere kundevurdering ({_rating_text(product)})")
 
-    return [p[:_MAX_ITEMS] for p in pros], [c[:_MAX_ITEMS] for c in cons]
+    return [_unique(p)[:_MAX_ITEMS] for p in pros], [_unique(c)[:_MAX_ITEMS] for c in cons]
+
+
+def _unique(items: list[str]) -> list[str]:
+    """Drop repeats, keep order ("Dampprogram" must not be listed twice)."""
+    return list(dict.fromkeys(items))
 
 
 def _best_win(rows: list[SpecRow], index: int) -> SpecRow | None:

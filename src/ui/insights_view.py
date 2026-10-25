@@ -50,20 +50,26 @@ def _name_headers(ins: Insights) -> str:
 
 
 def _differences(ins: Insights) -> None:
+    """The category's key specs side by side, with price on top."""
     with st.container(key="card_differences"):
-        card_title("list", "Viktigste forskjeller")
-        if not ins.differences:
-            st.write("Ingen tydelige forskjeller i spesifikasjonene.")
-            return
-        body = ""
+        card_title("list", "Viktigste spesifikasjoner")
+        prices = [p.price for p in ins.products]
+        cheapest = prices.index(min(prices)) if all(prices) and len(set(prices)) > 1 else None
+        price_cells = "".join(
+            f'<td class="{"win" if cheapest == i else ("missing" if not price else "")}">{kr(price) if price else MISSING}</td>'
+            for i, price in enumerate(prices))
+        body = f'<tr><td class="spec">Pris</td>{price_cells}</tr>'
         for row in ins.differences:
             cells = ""
             for i, value in enumerate(row.values):
                 cls = "win" if row.winner == i else ("missing" if value is None else "")
                 cells += f'<td class="{cls}">{escape(shown(row.rule, value) if value else MISSING)}</td>'
             body += f'<tr><td class="spec">{escape(row.rule.label.split(" (")[0])}</td>{cells}</tr>'
-        html(f'<div class="ps-table-wrap"><table class="ps-table"><thead><tr><th>Egenskap</th>'
-             f'{_name_headers(ins)}</tr></thead><tbody>{body}</tbody></table></div>')
+        if not ins.differences:
+            body += f'<tr><td colspan="{len(ins.products) + 1}" class="missing">Fant ingen av de viktige spesifikasjonene på sidene.</td></tr>'
+        html(f'<div class="ps-table-wrap"><table class="ps-table"><thead><tr><th>Spesifikasjon</th>'
+             f'{_name_headers(ins)}</tr></thead><tbody>{body}</tbody></table></div>'
+             '<div class="ps-hint">Grønn = best av de to. Ja/nei-funksjoner står i tabellen under.</div>')
 
 
 def _features(ins: Insights) -> None:

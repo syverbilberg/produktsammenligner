@@ -13,7 +13,7 @@ from src.insights.pros_cons import choose_texts, pros_and_cons
 from src.insights.use_cases import evaluate
 from src.models import Insights, Product
 
-_MAX_DIFFERENCES = 12
+_MAX_KEY_SPECS = 12
 
 
 def build_insights(products: list[Product]) -> Insights:
@@ -23,10 +23,10 @@ def build_insights(products: list[Product]) -> Insights:
     rows, _, categories = build_rows(products)
     rules, _ = select_rules(categories)
 
-    differences = [
-        row for row in rows
-        if row.rule.kind != "yes" and len({v for v in row.values}) > 1
-    ][:_MAX_DIFFERENCES]
+    # The category's most important specs, in the guide's order (most important
+    # first), equal or not – so the customer sees both products side by side at
+    # once. Yes/no features are shown in their own "Funksjoner" table.
+    differences = [row for row in rows if row.rule.kind != "yes"][:_MAX_KEY_SPECS]
     features = feature_rows(products, rows, rules)
     scenarios = evaluate(categories, rows, names)
     pros, cons = pros_and_cons(products, names, rows, features)

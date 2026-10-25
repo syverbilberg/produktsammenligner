@@ -28,9 +28,27 @@ _DEFAULTS = {
 DEFAULT_GROUP = "mda"
 
 
-def input_key(index: int) -> str:
-    """Widget key for product field number `index` (0-based)."""
-    return f"input_{index}"
+def _group() -> str:
+    return st.session_state.get("group", DEFAULT_GROUP)
+
+
+def input_key(index: int, group: str | None = None) -> str:
+    """Widget key for product field `index` (0-based) in a tab.
+
+    Every tab has its own fields ("input_mobile_0"). Sharing one set of fields
+    and refilling them does not work: the browser keeps what was typed and
+    sends it back, so MDA's varekoder ended up in Mobil's fields.
+    """
+    return f"input_{group or _group()}_{index}"
+
+
+def _typed(group: str | None = None) -> dict[int, str]:
+    """What has been typed in a tab, kept outside the widgets.
+
+    Streamlit forgets a widget's value when it is not on screen (another tab
+    is open), so the text is copied here and put back when the tab opens.
+    """
+    return st.session_state.setdefault("typed", {}).setdefault(group or _group(), {})
 
 
 def init() -> None:
@@ -40,13 +58,19 @@ def init() -> None:
     st.session_state.setdefault("group", DEFAULT_GROUP)
 
 
-# Keys saved per tab: everything in _DEFAULTS plus the typed varekoder.
-# Priority widgets (level_*) are not saved – their choices live in "levels".
-def _snapshot() -> dict:
-    """The open tab's comparison, so it can be restored later."""
-    saved = {key: st.session_state.get(key) for key in _DEFAULTS}
-    saved.update({k: v for k, v in st.session_state.items() if str(k).startswith("input_")})
-    return saved
+def restore_inputs() -> None:
+    """Put the open tab's typed text back into its fields (before they are drawn)."""
+    for index, value in _typed().items():
+        if index < st.session_state.count and input_key(index) not in st.session_state:
+            st.session_state[input_key(index)] = value
+
+
+def remember_inputs() -> None:
+    """Copy what is in the open tab's fields to the per-tab store."""
+    typed = _typed()
+    for index in range(st.session_state.count):
+        if input_key(index) in st.session_state:
+            typed[index] = st.session_state[input_key(index)]
 
 
 def set_group(group_id: str, keep_inputs: bool = False) -> None:
@@ -57,29 +81,41 @@ def set_group(group_id: str, keep_inputs: bool = False) -> None:
     "Bytt til fanen …": the typed varekoder move to the new tab and the old
     tab starts empty, since they did not belong there.
     """
-    current = st.session_state.get("group", DEFAULT_GROUP)
+    current = _group()
     if group_id == current:
         return
+    remember_inputs()
     store = st.session_state.setdefault("saved_groups", {})
-    snapshot = _snapshot()
     if keep_inputs:
-        store.pop(current, None)
-        target = {k: v for k, v in snapshot.items() if k.startswith("input_")}
-        target["count"] = snapshot.get("count", MIN_PRODUCTS)
-    else:
-        store[current] = snapshot
-        target = store.pop(group_id, {})
-    reset()
+        moved, count = dict(_typed(current)), st.session_state.count
+        reset()                                   # empties the old tab
+        st.session_state.group = group_id
+        _typed().clear()
+        _typed().update(moved)
+        st.session_state.count = count
+        for index in range(MAX_PRODUCTS):          # the new tab's fields must show the moved text
+            st.session_state.pop(input_key(index), None)
+        return
+    store[current] = {key: st.session_state.get(key) for key in _DEFAULTS}
+    target = store.pop(group_id, {})
+    for key, value in _DEFAULTS.items():
+        st.session_state[key] = value.copy() if isinstance(value, (list, dict)) else value
+    for key in [k for k in st.session_state if str(k).startswith("level_")]:
+        del st.session_state[key]
     st.session_state.group = group_id
     for key, value in target.items():
         st.session_state[key] = value
 
 
 def reset() -> None:
-    """Start a new comparison ("↺ Ny"). The open tab is kept."""
+    """Start a new comparison in the open tab ("↺ Ny"). Other tabs are kept."""
     for key, value in _DEFAULTS.items():
         st.session_state[key] = value.copy() if isinstance(value, (list, dict)) else value
-    for key in [k for k in st.session_state if str(k).startswith(("input_", "level_"))]:
+    for index in range(MAX_PRODUCTS):
+        if input_key(index) in st.session_state:
+            st.session_state[input_key(index)] = ""      # set, not delete: the browser would send the old text back
+    _typed().clear()
+    for key in [k for k in st.session_state if str(k).startswith("level_")]:
         del st.session_state[key]
 
 
@@ -90,16 +126,22 @@ def add_product() -> None:
 
 def remove_product(index: int) -> None:
     """Remove field `index` and shift the ones below it up."""
+    remember_inputs()
     count = st.session_state.count
+    typed = _typed()
     for i in range(index, count - 1):
-        st.session_state[input_key(i)] = st.session_state.get(input_key(i + 1), "")
-    st.session_state.pop(input_key(count - 1), None)
+        value = st.session_state.get(input_key(i + 1), "")
+        st.session_state[input_key(i)] = value
+        typed[i] = value
+    st.session_state[input_key(count - 1)] = ""
+    typed.pop(count - 1, None)
     st.session_state.count = max(count - 1, MIN_PRODUCTS)
 
 
 def current_inputs() -> tuple[str, ...]:
-    """What is typed in the product fields right now."""
-    return tuple(st.session_state.get(input_key(i), "").strip() for i in range(st.session_state.count))
+    """What is typed in the open tab's product fields right now."""
+    typed = _typed()
+    return tuple(str(st.session_state.get(input_key(i), typed.get(i, ""))).strip() for i in range(st.session_state.count))
 
 
 def drop_stale_products() -> None:
@@ -114,6 +156,7 @@ def drop_stale_products() -> None:
 def replace_product(index: int) -> None:
     """'Bytt produkt X': empty that field so the customer can type a new one."""
     st.session_state[input_key(index)] = ""
+    _typed()[index] = ""
     st.session_state.products = None
     st.session_state.result = None
     st.session_state.side_by_side = False

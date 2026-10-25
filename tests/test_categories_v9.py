@@ -123,3 +123,23 @@ def test_detection_inside_a_tab():
     jet = build(v9.SAMSUNG_JET)
     assert detect_category(jet, GROUPS["sda"].categories).id == "vacuum"
     assert detect_category(jet, GROUPS["mda"].categories) is None             # no MDA keyword fits a stick vacuum
+
+
+# ------------------------------------------------- "Funksjoner og bruk" tab
+def test_key_specs_show_equal_values_too_in_guide_order():
+    from src.insights import build_insights
+    from tests import real_pages as pages
+    ins = build_insights([build(pages.ASKO_W3096), build(v9.WASHER_DRYER_EW7)])
+    keys = [row.rule.key for row in ins.differences]
+    assert keys[:2] == ["capacity_kg", "spin"]                       # most important first
+    spin = next(row for row in ins.differences if row.rule.key == "spin")
+    assert spin.values[0] == spin.values[1]                          # 1600 vs 1600 is still shown
+    assert all(row.rule.kind != "yes" for row in ins.differences)
+
+
+def test_pros_and_cons_never_repeat_a_point():
+    from src.insights import build_insights
+    from tests import real_pages as pages
+    ins = build_insights([build(pages.ASKO_W3096), build(v9.WASHER_DRYER_EW7)])
+    for items in ins.pros + ins.cons:
+        assert len(items) == len(set(items)), items

@@ -78,6 +78,7 @@ def render() -> None:
     """Draw the product card, '+ Legg til produkt' and the fetch button."""
     count = st.session_state.count
     products = st.session_state.products
+    state.restore_inputs()
 
     with st.container(key="card_products"):
         head, reset_col = st.columns([5, 1], vertical_alignment="center")
@@ -104,6 +105,7 @@ def render() -> None:
             with st.container(key="add_product"):
                 st.button("+ Legg til produkt", on_click=state.add_product, width="stretch")
 
+    state.remember_inputs()
     for error in st.session_state.fetch_errors:
         st.error(error)
     suggested = st.session_state.get("wrong_tab")

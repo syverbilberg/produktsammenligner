@@ -207,7 +207,7 @@ class Insights:
     Attributes:
         products: The products, in input order.
         short_names: Short display name per product, e.g. "Bosch Series 6".
-        differences: Spec rows where the products differ (no yes/no rows).
+        differences: The category's key spec rows in guide order, equal or not (no yes/no rows).
         features: Yes/no features, differing ones first.
         included: What comes in the box, per product.
         scenarios: Result per use case for the detected category.
